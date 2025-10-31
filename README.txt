@@ -45,6 +45,7 @@ Views & Projections
 
 Scene Graph
 
+[ ] Começar com o hardcode (como forma de perceber o que está a acontecer)
 
 [ ] Internal + leaf nodes implemented
 
