@@ -3,9 +3,27 @@ import { ortho, lookAt, flatten } from "../../libs/MV.js";
 import { modelView, loadMatrix, multRotationX, multRotationY, multRotationZ, multScale, multTranslation, popMatrix, pushMatrix } from "../../libs/stack.js";
 
 import * as CUBE from '../../libs/objects/cube.js';
-import * as CYLINDER from '../../libs/objects/cylinder.js'
+import * as SPHERE from '../../libs/objects/sphere.js';
+import * as CYLINDER from '../../libs/objects/cylinder.js';
 
+let time = 0;
+let speed = 1 / 5.0;
+let animation = true;
 
+const tireSize = 0.2;
+const tireHeight = 0.1;
+const tireColor = [0.0, 0.0, 0.0, 1.0];
+const tireSpacing = 0.2;
+const numTiresPerSide = 6;
+
+const drone_orbit = 50;
+
+const colorDgreen = [0.1, 0.3, 0.1, 1.0];
+const colorLgreen = [0.1, 0.5, 0.1, 1.0];
+const colorYgreen = [0.3, 0.3, 0.1, 1.0];
+const colorGwhite = [0.0, 0.0, 0.0, 0.5];
+const colorLblue = [0.0, 0.0, 1.0, 0.5];
+const colorDblue = [0.0, 0.0, 0.5, 1.0];
 
 
 function setup(shaders) {
@@ -34,6 +52,7 @@ function setup(shaders) {
   resize_canvas();
   window.addEventListener("resize", resize_canvas);
 
+  //unapdated
   document.onkeydown = function (event) {
     switch (event.key) {
       case '1':
@@ -95,6 +114,7 @@ function setup(shaders) {
 
   CUBE.init(gl);
   CYLINDER.init(gl);
+  SPHERE.init(gl);
 
   window.requestAnimationFrame(render);
 
@@ -106,10 +126,10 @@ function setup(shaders) {
     aspect = canvas.width / canvas.height;
 
     gl.viewport(0, 0, canvas.width, canvas.height);
-    mProjection = ortho(-aspect * zoom, aspect * zoom, -zoom, zoom, 0.01, 3);
+    mProjection = ortho(-aspect * zoom, aspect * zoom, -zoom, zoom, 0.1, 5);
   }
 
-  function uploadProjection() {
+  function uploadProjection(mProjection) {
     uploadMatrix("u_projection", mProjection);
   }
 
@@ -145,90 +165,160 @@ function setup(shaders) {
       }
     }
   }
-  /*
-   function UpperArm() {
-     pushMatrix()
-     multScale([0.4, 0.1, 0.4]);
-     multTranslation([0, 0.5, 0]);
- 
-     uploadModelView();
-     CYLINDER.draw(gl, program, mode);
-     popMatrix()
-     multTranslation([0, 0.1, 0]);
-     multScale([0.05, 0.6, 0.05]);
-     multTranslation([0, 0.5, 0]);
- 
-     uploadModelView();
-     CUBE.draw(gl, program, mode);
-   }
-     function LowerArmAndClaw() {
-       multRotationZ(rc);
-       pushMatrix();
-       LowerArm();
-       popMatrix();
-       multTranslation([0, 0.45, 0]);
-       Claw();
-     }
-   
-     function LowerArm() {
-       pushMatrix();
-       multScale([0.1, 0.1, 0.05]);
-       multRotationX(90);
-   
-       uploadModelView();
-       CYLINDER.draw(gl, program, mode);
-       popMatrix();
-       multTranslation([0, 0.05, 0]);
-       multScale([0.05, 0.4, 0.05]);
-       multTranslation([0, 0.5, 0]);
-   
-       uploadModelView();
-       CUBE.draw(gl, program, mode);
-     }
-   
-   
-     function Claw() {
-       multRotationY(rg)
-       // Fist
-       pushMatrix();
-       multScale([0.2, 0.05, 0.2]);
-       multTranslation([0, -0.5, 0]);
-   
-       uploadModelView();
-       CYLINDER.draw(gl, program, mode);
-       popMatrix();
-       // Maxilla 1
-       pushMatrix();
-       multTranslation([ag, 0, 0]);
-       multScale([0.02, 0.15, 0.1]);
-       multTranslation([0.5, 0.5, 0]);
-   
-       uploadModelView();
-       CUBE.draw(gl, program, mode);
-       popMatrix();
-       // Maxilla 2
-       multTranslation([-ag, 0, 0]);
-       multScale([0.02, 0.15, 0.1]);
-       multTranslation([-0.5, 0.5, 0]);
-   
-       uploadModelView();
-       CUBE.draw(gl, program, mode);
-     }
-   
-     function RobotArm() {
-       multRotationY(rb);
-       pushMatrix();
-       UpperArm();
-       popMatrix();
-       multTranslation([0, 0.7, 0]);
-   
-       multTranslation([0, 0.05, 0]);
-       pushMatrix();
-       LowerArmAndClaw();
-       popMatrix();
-     }
-   */
+
+  //makes the tires
+  function sideTires(tireSize, tireHeight, color, spacing, numTires, yPos, zPos) {
+    const uColor = gl.getUniformLocation(program, "u_color");
+
+    for (let i = 0; i < numTires; i++) {
+      pushMatrix();
+      multRotationZ(90);
+      const xPos = (i - (numTires - 1) / 2) * spacing;
+      multRotationY(90);
+      multTranslation([xPos, yPos, zPos]);
+
+      multScale([tireSize, tireHeight / 2, tireSize]);
+
+
+      gl.uniform4fv(uColor, color);
+      uploadModelView();
+      CYLINDER.draw(gl, program, mode);
+      popMatrix();
+
+    }
+  }
+
+  //body of the drone with the propellers and cannon
+  function drone_body(uColor) {
+    gl.uniform4fv(uColor, colorGwhite);
+    uploadModelView();
+    SPHERE.draw(gl, program, mode);
+
+    pushMatrix();
+    multTranslation([0.0, 0.0, 0.3]);
+    multRotationX(90);
+    multScale([0.2, 0.9, 0.2]);
+    gl.uniform4fv(uColor, colorDblue);
+    uploadModelView();
+    CYLINDER.draw(gl, program, mode);
+    popMatrix();
+
+    const rotorUPositions = [
+      [0.4, 0.3, 0.4],
+      [-0.4, 0.3, 0.4],
+      [0.4, 0.3, -0.4],
+      [-0.4, 0.3, -0.4]
+    ];
+    const rotorDPositions = [
+      [-0.4, -0.3, -0.4],
+      [0.4, -0.3, -0.4],
+      [-0.4, -0.3, 0.4],
+      [0.4, -0.3, 0.4]
+    ];
+    for (const [x, y, z] of rotorUPositions) {
+      pushMatrix();
+      multTranslation([x, y, z]);
+      multScale([0.5, 0.1, 0.5]);
+      gl.uniform4fv(uColor, colorLblue);
+      uploadModelView();
+      CYLINDER.draw(gl, program, mode);
+      popMatrix();
+    }
+
+    for (const [x, y, z] of rotorDPositions) {
+      pushMatrix();
+      multTranslation([x, y, z]);
+      multScale([0.5, 0.1, 0.5]);
+      gl.uniform4fv(uColor, colorLblue);
+      uploadModelView();
+      CYLINDER.draw(gl, program, mode);
+      popMatrix();
+    }
+
+
+  }
+
+  // makes the rotation of the drone's body
+  function drone() {
+    const uColor = gl.getUniformLocation(program, "u_color");
+    pushMatrix();
+    multRotationY(360 * time / drone_orbit);
+    multTranslation([0.5, 0.8, 0.5]);
+    multRotationY(-360 * time / drone_orbit); //stops it fromm rotating over its axis
+    multScale([0.2, 0.2, 0.2]);
+    drone_body(uColor);
+    popMatrix();
+  }
+
+  // makes the tank's cannon 
+  function tankCannon() {
+    const uColor = gl.getUniformLocation(program, "u_color");
+    pushMatrix();
+    multTranslation([1.0, 0.8, 1.0]);
+    multRotationX(90);
+    multScale([0.1, 0.5, 0.1]);
+    gl.uniform4fv(uColor, colorYgreen);
+    uploadModelView();
+    CYLINDER.draw(gl, program, mode);
+    popMatrix();
+  }
+
+  // makes the top head of the tank
+  function tankTop() {
+    const uColor = gl.getUniformLocation(program, "u_color");
+
+    pushMatrix();
+    multScale([0.5, 0.5, 0.5]);
+    multTranslation([0, 0.8, 0]);
+    gl.uniform4fv(uColor, colorDgreen);
+    uploadModelView();
+    SPHERE.draw(gl, program, mode);
+    popMatrix();
+  }
+
+  // makes the tank's base
+  function tankBase() {
+    const uColor = gl.getUniformLocation(program, "u_color");
+
+    pushMatrix();
+    multTranslation([0, 0.07, 0]);
+    multScale([1, 0.1, 1.0]);
+    gl.uniform4fv(uColor, colorDgreen);
+    uploadModelView();
+    CUBE.draw(gl, program, mode);
+    popMatrix();
+
+    pushMatrix();
+    multTranslation([0, 0.07, 0]);
+    multScale([1.0, 0.15, 1.2]);
+    multTranslation([0, 1.0, 0]);
+    gl.uniform4fv(uColor, colorYgreen);
+    uploadModelView();
+    CUBE.draw(gl, program, mode);
+    popMatrix();
+
+    pushMatrix();
+    multRotationY(45);
+    multScale([1, 0.2, 1.0]);
+    multTranslation([0, 1.5, 0]);
+    gl.uniform4fv(uColor, colorLgreen);
+    uploadModelView();
+    CYLINDER.draw(gl, program, mode);
+    popMatrix();
+  }
+
+  //mixes the whole tank's body
+  function tank() {
+    sideTires(tireSize, tireHeight, tireColor, tireSpacing, numTiresPerSide, 0.55, 0.1);
+    sideTires(tireSize, tireHeight, tireColor, tireSpacing, numTiresPerSide, -0.55, 0.1);
+    tankBase();
+    tankTop();
+    tankCannon();
+    drone();
+  }
+
   function render() {
+    if (animation) time += speed;
     window.requestAnimationFrame(render);
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -242,9 +332,8 @@ function setup(shaders) {
 
     // Load the ModelView matrix with the Worl to Camera (View) matrix
     loadMatrix(mView);
-
     floor();
-
+    tank();
   }
 }
 
