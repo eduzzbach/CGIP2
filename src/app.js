@@ -130,7 +130,7 @@ function setup(shaders) {
       for (let j = -size / 2; j < size / 2; j++) {
         pushMatrix();
 
-        multTranslation([i * tileSize * 1, -height / 1, j * tileSize * 1]);
+        multTranslation([i * tileSize, -height / 2, j * tileSize]);
         multScale([tileSize, height, tileSize]);
 
         const isWhite = (i + j) % 2 === 0;
