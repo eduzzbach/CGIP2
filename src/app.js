@@ -9,6 +9,15 @@ import * as CYLINDER from '../../libs/objects/cylinder.js';
 let time = 0;
 let speed = 1 / 5.0;
 let animation = true;
+let tankPos = [0.0, 0.0, 0.0];
+let cabinAngle = 0;
+let cannonAngle = 0;
+let tireRotation = 0;
+let multiView = false;
+
+const floorSize = 20;
+const tileSize = 0.25;
+const tileHeight = 0.05;
 
 const tireSize = 0.2;
 const tireHeight = 0.1;
@@ -24,6 +33,11 @@ const colorYgreen = [0.3, 0.3, 0.1, 1.0];
 const colorGwhite = [0.0, 0.0, 0.0, 0.5];
 const colorLblue = [0.0, 0.0, 1.0, 0.5];
 const colorDblue = [0.0, 0.0, 0.5, 1.0];
+
+const fView = lookAt([0, 0.6, 1], [0, 0.6, 0], [0, 1, 0]);
+const sView = lookAt([1, 0.6, 0.], [0, 0.6, 0], [0, 1, 0]);
+const tView = lookAt([0, 1.6, 0], [0, 0.6, 0], [0, 0, -1]);
+
 
 
 function setup(shaders) {
@@ -43,69 +57,116 @@ function setup(shaders) {
 
   let zoom = 1.0;
 
-  /** Model parameters */
-  let ag = 0;
-  let rg = 0;
-  let rb = 0;
-  let rc = 0;
-
   resize_canvas();
   window.addEventListener("resize", resize_canvas);
+
+  function radians(deg) {
+    return deg * Math.PI / 180.0;
+  }
+
+  canvas.addEventListener("wheel", (event) => {
+    event.preventDefault();
+
+    if (event.deltaY < 0) {
+      zoom *= 1.1;
+    } else {
+      zoom *= 0.9;
+    }
+    zoom = Math.min(Math.max(zoom, 0.1), 10.0);
+
+    updateZoomDisplay();
+  });
 
   //unapdated
   document.onkeydown = function (event) {
     switch (event.key) {
       case '1':
         // Front view
-        mView = lookAt([0, 0.6, 1], [0, 0.6, 0], [0, 1, 0]);
+        mView = fView;
         break;
       case '2':
-        // Top view
-        mView = lookAt([0, 1.6, 0], [0, 0.6, 0], [0, 0, -1]);
+        // Right view
+        mView = sView;
         break;
       case '3':
-        // Right view
-        mView = lookAt([1, 0.6, 0.], [0, 0.6, 0], [0, 1, 0]);
+        // Top view
+        mView = tView;
         break;
       case '4':
-        mView = lookAt([2, 1.2, 1], [0, 0.6, 0], [0, 1, 0]);
+        // Axometric view(not done)
+        const isoDistance = 2.0;
+        const angle = Math.PI / 4; // 45°
+        const heightAngle = Math.atan(Math.tan(radians(35.26))); // 35.26° elevation
+        const eye = [
+          isoDistance * Math.cos(angle),
+          isoDistance * Math.sin(heightAngle),
+          isoDistance * Math.sin(angle)
+        ];
+
+        mView = lookAt(eye, [0, 0.6, 0], [0, 1, 0]);
         break;
-      case '9':
-        mode = gl.LINES;
+      case '0': //lowkey bugado ainda
+        multiView = !multiView;
+        //toggle multiple views or single view
         break;
-      case '0':
-        mode = gl.TRIANGLES;
+      case '8':
+        //toggle between axonometric view and oblique view when view 4
         break;
-      case 'p':
-        ag = Math.min(0.050, ag + 0.005);
-        break;
-      case 'o':
-        ag = Math.max(0, ag - 0.005);
+      //case 'arrow keys':
+      // adjust axonometric/oblique parameters
+      case 'r':
+      case 'R':
+        //reset projection to view 1 and zoom
         break;
       case 'q':
-        rg += 1;
+      case 'Q':
+        //move forwards
+        tankPos[0] -= 0.05 * Math.sin(-radians(cabinAngle));
+        tankPos[2] += 0.05 * Math.cos(radians(cabinAngle));
+        tireRotation += 5;
+
         break;
       case 'e':
-        rg -= 1;
+      case 'E':
+        //move backwards (ele vira de acordo com a direção que o canhão aponta
+        //agora não se eles querem que as rodas tambêm rodem)
+        tankPos[0] += 0.05 * Math.sin(-radians(cabinAngle));
+        tankPos[2] -= 0.05 * Math.cos(radians(cabinAngle));
+        tireRotation -= 5;
         break;
       case 'w':
-        rc = Math.min(120, rc + 1);
+      case 'W':
+        //raise cannon
+        if (cannonAngle > -75)
+          cannonAngle -= 5;
         break;
       case 's':
-        rc = Math.max(-120, rc - 1);
+      case 'S':
+        //lower cannon
+        if (cannonAngle < 10)
+          cannonAngle += 5;
         break;
       case 'a':
-        rb -= 1;
+      case 'A':
+        //rotate cabin counter clockwise
+        cabinAngle += 5;
         break;
       case 'd':
-        rb += 1;
+      case 'D':
+        //rotate cabin clockwise
+        cabinAngle -= 5;
         break;
-      case '+':
-        zoom /= 1.1;
+      case 'z':
+      case 'Z':
+        //shoot tomato
         break;
-      case '-':
-        zoom *= 1.1;
+
+      case ' ':
+      case 'Spacebar':
+        // changes between wireframe and solid
+        mode = (mode === gl.TRIANGLES) ? gl.LINES : gl.TRIANGLES;
         break;
+
     }
   }
 
@@ -141,17 +202,14 @@ function setup(shaders) {
     gl.uniformMatrix4fv(gl.getUniformLocation(program, name), false, flatten(m));
   }
 
-  function floor() {
-    const size = 20;
-    const tileSize = 0.25;
-    const height = 0.05;
+  function floor(floorSize, tileSize, tileHeight) {
 
-    for (let i = -size / 2; i < size / 2; i++) {
-      for (let j = -size / 2; j < size / 2; j++) {
+    for (let i = -floorSize / 2; i < floorSize / 2; i++) {
+      for (let j = -floorSize / 2; j < floorSize / 2; j++) {
         pushMatrix();
 
-        multTranslation([i * tileSize, -height / 2, j * tileSize]);
-        multScale([tileSize, height, tileSize]);
+        multTranslation([i * tileSize, -tileHeight / 2, j * tileSize]);
+        multScale([tileSize, tileHeight, tileSize]);
 
         const isWhite = (i + j) % 2 === 0;
         const color = isWhite ? [1.0, 1.0, 1.0, 1.0] : [0.5, 0.5, 0.5, 1.0];
@@ -176,9 +234,9 @@ function setup(shaders) {
       const xPos = (i - (numTires - 1) / 2) * spacing;
       multRotationY(90);
       multTranslation([xPos, yPos, zPos]);
+      multRotationY(tireRotation);
 
       multScale([tireSize, tireHeight / 2, tireSize]);
-
 
       gl.uniform4fv(uColor, color);
       uploadModelView();
@@ -193,14 +251,17 @@ function setup(shaders) {
     gl.uniform4fv(uColor, colorGwhite);
     uploadModelView();
     SPHERE.draw(gl, program, mode);
-
+    pushMatrix();
+    multRotationY(cabinAngle);
     pushMatrix();
     multTranslation([0.0, 0.0, 0.3]);
+    multRotationX(cannonAngle);
     multRotationX(90);
-    multScale([0.2, 0.9, 0.2]);
+    multScale([0.2, 0.85, 0.2]);
     gl.uniform4fv(uColor, colorDblue);
     uploadModelView();
     CYLINDER.draw(gl, program, mode);
+    popMatrix();
     popMatrix();
 
     const rotorUPositions = [
@@ -254,25 +315,39 @@ function setup(shaders) {
   function tankCannon() {
     const uColor = gl.getUniformLocation(program, "u_color");
     pushMatrix();
-    multTranslation([1.0, 0.8, 1.0]);
-    multRotationX(90);
-    multScale([0.1, 0.5, 0.1]);
+    multTranslation([0.0, 0.5, 0.2]);
+    multRotationZ(90);
+    multScale([0.1, 0.1, 0.1]);
     gl.uniform4fv(uColor, colorYgreen);
     uploadModelView();
     CYLINDER.draw(gl, program, mode);
     popMatrix();
+    pushMatrix();
+    pushMatrix();
+    multTranslation([0.0, 0.5, 0.2]);
+    multRotationX(cannonAngle);
+    multRotationX(90);
+    multScale([0.05, 0.7, 0.05]);
+    gl.uniform4fv(uColor, colorYgreen);
+    uploadModelView();
+    CYLINDER.draw(gl, program, mode);
+    popMatrix();
+    popMatrix();
   }
 
-  // makes the top head of the tank
-  function tankTop() {
+  // makes the cabin of the tank
+  function tankCabin() {
     const uColor = gl.getUniformLocation(program, "u_color");
-
+    pushMatrix();
+    multRotationY(cabinAngle);
     pushMatrix();
     multScale([0.5, 0.5, 0.5]);
     multTranslation([0, 0.8, 0]);
     gl.uniform4fv(uColor, colorDgreen);
     uploadModelView();
     SPHERE.draw(gl, program, mode);
+    popMatrix();
+    tankCannon();
     popMatrix();
   }
 
@@ -281,8 +356,8 @@ function setup(shaders) {
     const uColor = gl.getUniformLocation(program, "u_color");
 
     pushMatrix();
-    multTranslation([0, 0.07, 0]);
-    multScale([1, 0.1, 1.0]);
+    multTranslation([0, 0.1, 0]);
+    multScale([0.8, 0.1, 1.0]);
     gl.uniform4fv(uColor, colorDgreen);
     uploadModelView();
     CUBE.draw(gl, program, mode);
@@ -298,8 +373,8 @@ function setup(shaders) {
     popMatrix();
 
     pushMatrix();
-    multRotationY(45);
-    multScale([1, 0.2, 1.0]);
+    multRotationY(90);
+    multScale([1.1, 0.2, 1.0]);
     multTranslation([0, 1.5, 0]);
     gl.uniform4fv(uColor, colorLgreen);
     uploadModelView();
@@ -309,11 +384,11 @@ function setup(shaders) {
 
   //mixes the whole tank's body
   function tank() {
-    sideTires(tireSize, tireHeight, tireColor, tireSpacing, numTiresPerSide, 0.55, 0.1);
-    sideTires(tireSize, tireHeight, tireColor, tireSpacing, numTiresPerSide, -0.55, 0.1);
+    multTranslation(tankPos);
+    sideTires(tireSize, tireHeight, tireColor, tireSpacing, numTiresPerSide, 0.53, 0.1);
+    sideTires(tireSize, tireHeight, tireColor, tireSpacing, numTiresPerSide, -0.53, 0.1);
     tankBase();
-    tankTop();
-    tankCannon();
+    tankCabin();
     drone();
   }
 
@@ -327,13 +402,49 @@ function setup(shaders) {
 
     // Send the mProjection matrix to the GLSL program
     const range = 2.0;
-    mProjection = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
-    uploadProjection(mProjection);
+    //mProjection = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
 
-    // Load the ModelView matrix with the Worl to Camera (View) matrix
-    loadMatrix(mView);
-    floor();
-    tank();
+    if (!multiView) {
+      mProjection = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
+      uploadProjection(mProjection);
+      loadMatrix(mView);
+
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      floor(floorSize, tileSize, tileHeight);
+      tank();
+    } else {
+      // ----- MULTI-VIEW (4 quadrants) -----
+      const halfWidth = canvas.width / 2;
+      const halfHeight = canvas.height / 2;
+
+      // Helper to render one view
+      function drawView(viewMatrix, x, y, w, h) {
+        gl.viewport(x, y, w, h);
+        mProjection = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
+        uploadProjection(mProjection);
+        loadMatrix(viewMatrix);
+        floor(floorSize, tileSize, tileHeight);
+        tank();
+      }
+
+      // Define the 4 camera views:
+      const views = {
+        front: fView,
+        right: sView,
+        top: tView,
+        axon: lookAt(
+          [2 * Math.cos(Math.PI / 4), 2 * Math.sin(radians(35.26)), 2 * Math.sin(Math.PI / 4)],
+          [0, 0.6, 0],
+          [0, 1, 0]
+        ),
+      };
+
+      // Render each in its quadrant
+      drawView(views.front, 0, halfHeight, halfWidth, halfHeight);         // top-left
+      drawView(views.right, halfWidth, halfHeight, halfWidth, halfHeight); // top-right
+      drawView(views.top, 0, 0, halfWidth, halfHeight);                    // bottom-left
+      drawView(views.axon, halfWidth, 0, halfWidth, halfHeight);           // bottom-right
+    }
   }
 }
 
