@@ -463,11 +463,13 @@ function setup(shaders) {
 
     const range = 2.0;
 
+    const baseOrtho = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
+
     if (!multiView) {
-      mProjection = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
+      mProjection = baseOrtho;
+
       uploadProjection(mProjection);
       loadMatrix(mView);
-
       gl.viewport(0, 0, canvas.width, canvas.height);
       floor(floorSize, tileSize, tileHeight);
       tank();
@@ -479,7 +481,7 @@ function setup(shaders) {
       // Helper to render one view
       function drawView(viewMatrix, x, y, w, h) {
         gl.viewport(x, y, w, h);
-        mProjection = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
+        mProjection = baseOrtho;
         uploadProjection(mProjection);
         loadMatrix(viewMatrix);
         floor(floorSize, tileSize, tileHeight);
@@ -504,6 +506,7 @@ function setup(shaders) {
       drawView(views.top, 0, 0, halfWidth, halfHeight);                    // bottom-left
       drawView(views.axon, halfWidth, 0, halfWidth, halfHeight);           // bottom-right
     }
+
   }
 }
 
