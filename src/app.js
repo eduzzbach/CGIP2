@@ -14,10 +14,17 @@ let cabinAngle = 0;
 let cannonAngle = 0;
 let tireRotation = 0;
 let multiView = false;
+let theta = 0;
+let gamma = 0;
+let zoom = 1.0;
+
+
 
 const floorSize = 20;
 const tileSize = 0.25;
 const tileHeight = 0.05;
+
+
 
 const tireSize = 0.2;
 const tireHeight = 0.1;
@@ -37,6 +44,7 @@ const colorDblue = [0.0, 0.0, 0.5, 1.0];
 const fView = lookAt([0, 0.6, 1], [0, 0.6, 0], [0, 1, 0]);
 const sView = lookAt([1, 0.6, 0.], [0, 0.6, 0], [0, 1, 0]);
 const tView = lookAt([0, 1.6, 0], [0, 0.6, 0], [0, 0, -1]);
+const oView = lookAt([2, 1.2, 1], [0, 0.6, 0], [0, 1, 0]);
 
 
 
@@ -53,9 +61,7 @@ function setup(shaders) {
   let program = buildProgramFromSources(gl, shaders["shader.vert"], shaders["shader.frag"]);
 
   let mProjection = ortho(-1 * aspect, aspect, -1, 1, 0.01, 3);
-  let mView = lookAt([2, 1.2, 1], [0, 0.6, 0], [0, 1, 0]);
-
-  let zoom = 1.0;
+  let mView = oView;
 
   resize_canvas();
   window.addEventListener("resize", resize_canvas);
@@ -84,14 +90,17 @@ function setup(shaders) {
         // Front view
         mView = fView;
         break;
+
       case '2':
         // Right view
         mView = sView;
         break;
+
       case '3':
         // Top view
         mView = tView;
         break;
+
       case '4':
         // Axometric view(not done)
         const isoDistance = 2.0;
@@ -105,27 +114,61 @@ function setup(shaders) {
 
         mView = lookAt(eye, [0, 0.6, 0], [0, 1, 0]);
         break;
-      case '0': //lowkey bugado ainda
-        multiView = !multiView;
+
+      case '0':
         //toggle multiple views or single view
+        multiView = !multiView;
+
         break;
+
       case '8':
         //toggle between axonometric view and oblique view when view 4
+        const obliqueAngle = 45;
+        const depthAngle = 63.4;
+        const oblique = obliqueMatrix(obliqueAngle, depthAngle);
+        //mView = fView;
+        mView = mult(ortho(- aspect * zoom, aspect * zoom, -zoom, zoom, 0.1, 5), oblique);
         break;
+
+      case '9':
+        // toggle between parallel vs perspective views
+
+        break;
+
       //case 'arrow keys':
       // adjust axonometric/oblique parameters
+      case 'ArrowUp':
+        gamma += 0.5;
+        break;
+      case 'ArrowDown':
+        gamma -= 0.5;
+        break;
+
+      case 'ArrowLeft':
+        theta += 0.5;
+        break;
+
+      case 'ArrowRight':
+        theta -= 0.5;
+        break;
+
       case 'r':
       case 'R':
-        //reset projection to view 1 and zoom
+        //reset projection to the initial view and zoom
+        const range = 2.0;
+        mProjection = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
+        mView = oView;
+        zoom = 1.0;
         break;
+
       case 'q':
       case 'Q':
         //move forwards
         tankPos[0] -= 0.05 * Math.sin(-radians(cabinAngle));
         tankPos[2] += 0.05 * Math.cos(radians(cabinAngle));
         tireRotation += 5;
-
         break;
+
       case 'e':
       case 'E':
         //move backwards (ele vira de acordo com a direção que o canhão aponta
@@ -134,28 +177,33 @@ function setup(shaders) {
         tankPos[2] -= 0.05 * Math.cos(radians(cabinAngle));
         tireRotation -= 5;
         break;
+
       case 'w':
       case 'W':
         //raise cannon
         if (cannonAngle > -75)
           cannonAngle -= 5;
         break;
+
       case 's':
       case 'S':
         //lower cannon
         if (cannonAngle < 10)
           cannonAngle += 5;
         break;
+
       case 'a':
       case 'A':
         //rotate cabin counter clockwise
         cabinAngle += 5;
         break;
+
       case 'd':
       case 'D':
         //rotate cabin clockwise
         cabinAngle -= 5;
         break;
+
       case 'z':
       case 'Z':
         //shoot tomato
@@ -192,6 +240,19 @@ function setup(shaders) {
 
   function uploadProjection(mProjection) {
     uploadMatrix("u_projection", mProjection);
+  }
+
+  function obliqueMatrix(thetaDeg = 45, gammaDeg = 45) {
+    theta = thetaDeg * Math.PI / 180.0;
+    gamma = gammaDeg * Math.PI / 180.0;
+
+    // Standard oblique shear matrix
+    return [
+      1, 0, Math.cos(theta) / Math.tan(gamma), 0,
+      0, 1, Math.sin(theta) / Math.tan(gamma), 0,
+      0, 0, 1, 0,
+      0, 0, 0, 1
+    ];
   }
 
   function uploadModelView() {
@@ -400,9 +461,7 @@ function setup(shaders) {
 
     gl.useProgram(program);
 
-    // Send the mProjection matrix to the GLSL program
     const range = 2.0;
-    //mProjection = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
 
     if (!multiView) {
       mProjection = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
@@ -413,7 +472,7 @@ function setup(shaders) {
       floor(floorSize, tileSize, tileHeight);
       tank();
     } else {
-      // ----- MULTI-VIEW (4 quadrants) -----
+
       const halfWidth = canvas.width / 2;
       const halfHeight = canvas.height / 2;
 
