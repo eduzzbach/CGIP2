@@ -11,36 +11,35 @@ usar lookAt()(gera matriz view, 1º args é localização da camera, 2º args é
 CHECKLIST ----
 Tank Modelling
 
+[x] Cabin rotates (a, d)
 
-[ ] Cabin rotates (a, d)
+[x] Cannon rotates (w, s)
 
-[ ] Cannon rotates (w, s)
+[x] Minimum 12 wheels
 
-[ ] Minimum 12 wheels
+[?] Wheels rotate when tank moves (q, e) (não consigo confirmar se roda ou não)
 
-[ ] Wheels rotate when tank moves (q, e)
+[x] Minimum 18 primitives used
 
-[ ] Minimum 18 primitives used
-
-[ ] Realistic movement limits applied
+[x] Realistic movement limits applied (a nível do limite do canhão)
 
 
 Views & Projections
 
 
-[ ] Single/multiple views toggle (0)
+[x] Single/multiple views toggle (0)
 
-[ ] Four camera presets (1–4)
+[x] Four camera presets (1–4)
 
-[ ] View 4: axonometric/oblique toggle (8)
+[?] View 4: axonometric/oblique toggle (8)(incompleto falta incorporar os arrow keys)
 
-[ ] Parallel/perspective toggle (9)
+[?] Parallel/perspective toggle (9)(talvez seja precisa que o fov interage com o zoom de momento o perspective não dá para dar zoom)
 
 [ ] Parameters adjusted via arrow keys
 
-[ ] Zoom with mouse wheel (centred view)
+[x] Zoom with mouse wheel (centred view)
 
-[ ] No distortion on window resize
+[?] No distortion on window resize(no meu pc não distorcia, mas às vezes a alterar algo mínimo distorce tudo, é ter cuidade)
 
 
 Scene Graph
@@ -59,8 +58,10 @@ Scene Graph
 Ground + Extras
 
 
-[ ] Chequered ground plane at y = 0
+[?] Chequered ground plane at y = 0 (está checkered mas não se se está at y = 0, parece-me igual ao enunciado portanto idk)
 
-[ ] Tomatoes can be fired
+[?] Tomatoes can be fired(eles não estão a sair do canhão quando o ângulo dele muda)
 
-[ ] Creative add-ons (optional)
+[ ] Creative add-ons (optional) (DRONE DRONE DRONE(se for bué torturoso manda-o po lixo mm))
+
+BOA SORTE MPT GAMBALHÃO

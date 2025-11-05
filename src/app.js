@@ -1,5 +1,5 @@
 import { buildProgramFromSources, loadShadersFromURLS, setupWebGL } from "../../libs/utils.js";
-import { ortho, lookAt, flatten } from "../../libs/MV.js";
+import { ortho, lookAt, flatten, mult, perspective } from "../../libs/MV.js";
 import { modelView, loadMatrix, multRotationX, multRotationY, multRotationZ, multScale, multTranslation, popMatrix, pushMatrix } from "../../libs/stack.js";
 
 import * as CUBE from '../../libs/objects/cube.js';
@@ -13,19 +13,22 @@ let tankPos = [0.0, 0.0, 0.0];
 let cabinAngle = 0;
 let cannonAngle = 0;
 let tireRotation = 0;
-let multiView = false;
-let theta = 0;
-let gamma = 0;
+let theta = 45;
+let gamma = 63.4;
 let zoom = 1.0;
+let projectiles = [];
 
+//projection booleans
+let multiView = false;
+let isOblique = false;
+let isPerspective = false;
 
-
+//floor constants
 const floorSize = 20;
 const tileSize = 0.25;
 const tileHeight = 0.05;
 
-
-
+//tire constants
 const tireSize = 0.2;
 const tireHeight = 0.1;
 const tireColor = [0.0, 0.0, 0.0, 1.0];
@@ -34,6 +37,7 @@ const numTiresPerSide = 6;
 
 const drone_orbit = 50;
 
+//color presets
 const colorDgreen = [0.1, 0.3, 0.1, 1.0];
 const colorLgreen = [0.1, 0.5, 0.1, 1.0];
 const colorYgreen = [0.3, 0.3, 0.1, 1.0];
@@ -41,10 +45,11 @@ const colorGwhite = [0.0, 0.0, 0.0, 0.5];
 const colorLblue = [0.0, 0.0, 1.0, 0.5];
 const colorDblue = [0.0, 0.0, 0.5, 1.0];
 
-const fView = lookAt([0, 0.6, 1], [0, 0.6, 0], [0, 1, 0]);
-const sView = lookAt([1, 0.6, 0.], [0, 0.6, 0], [0, 1, 0]);
-const tView = lookAt([0, 1.6, 0], [0, 0.6, 0], [0, 0, -1]);
-const oView = lookAt([2, 1.2, 1], [0, 0.6, 0], [0, 1, 0]);
+//types of views
+const fView = lookAt([0, 0.6, 1], [0, 0.6, 0], [0, 1, 0]); // front view
+const sView = lookAt([1, 0.6, 0.], [0, 0.6, 0], [0, 1, 0]); // side view
+const tView = lookAt([0, 1.6, 0], [0, 0.6, 0], [0, 0, -1]); // top view
+const oView = lookAt([2, 1.2, 1], [0, 0.6, 0], [0, 1, 0]); // original view
 
 
 
@@ -80,11 +85,54 @@ function setup(shaders) {
     }
     zoom = Math.min(Math.max(zoom, 0.1), 10.0);
 
-    updateZoomDisplay();
+    // updateZoomDisplay();
   });
 
-  //unapdated
+  //
+  //case 'arrow keys':
+  // adjust axonometric/oblique parameters
+  /*
+  window.addEventListener("keydown", (event) => {
+    switch (event.key) {
+      case "ArrowUp":
+        if (isOblique) {
+          gamma += 1;
+          gamma = Math.min(Math.max(gamma, 1), 89);
+          console.log(`γ = ${gamma.toFixed(1)}°`);
+        }
+        event.preventDefault();
+        break;
+
+      case "ArrowDown":
+        if (isOblique) {
+          gamma -= 1;
+          gamma = Math.min(Math.max(gamma, 1), 89);
+          console.log(`γ = ${gamma.toFixed(1)}°`);
+        }
+        event.preventDefault();
+        break;
+
+      case "ArrowLeft":
+        if (isOblique) {
+          theta += 1;
+          console.log(`θ = ${theta.toFixed(1)}°`);
+        }
+        event.preventDefault();
+        break;
+
+      case "ArrowRight":
+        if (isOblique) {
+          theta -= 1;
+          console.log(`θ = ${theta.toFixed(1)}°`);
+        }
+        event.preventDefault();
+        break;
+    }
+  });*/
+
+
   document.onkeydown = function (event) {
+    console.log("Key pressed:", event.key);
     switch (event.key) {
       case '1':
         // Front view
@@ -101,55 +149,45 @@ function setup(shaders) {
         mView = tView;
         break;
 
-      case '4':
-        // Axometric view(not done)
-        const isoDistance = 2.0;
-        const angle = Math.PI / 4; // 45°
-        const heightAngle = Math.atan(Math.tan(radians(35.26))); // 35.26° elevation
-        const eye = [
-          isoDistance * Math.cos(angle),
-          isoDistance * Math.sin(heightAngle),
-          isoDistance * Math.sin(angle)
-        ];
+      case '4': //case '8' alters the type of view in this case
+        // Axometric view
+        if (isOblique) {
+          mView = oView;
+        }
+        else {
+          const isoDistance = 2.0;
+          const angle = Math.PI / 4; // 45°
+          const heightAngle = Math.atan(Math.tan(radians(35.26))); // 35.26° elevation
+          const eye = [
+            isoDistance * Math.cos(angle),
+            isoDistance * Math.sin(heightAngle),
+            isoDistance * Math.sin(angle)
+          ];
 
-        mView = lookAt(eye, [0, 0.6, 0], [0, 1, 0]);
+          mView = lookAt(eye, [0, 0.6, 0], [0, 1, 0]);
+        }
         break;
 
       case '0':
         //toggle multiple views or single view
         multiView = !multiView;
-
         break;
 
       case '8':
         //toggle between axonometric view and oblique view when view 4
-        const obliqueAngle = 45;
-        const depthAngle = 63.4;
-        const oblique = obliqueMatrix(obliqueAngle, depthAngle);
-        //mView = fView;
-        mView = mult(ortho(- aspect * zoom, aspect * zoom, -zoom, zoom, 0.1, 5), oblique);
+        isOblique = !isOblique;
+        if (isOblique) {
+          // use same eye position as axonometric but from slightly different direction
+          const eye = [1.5, 1.2, 1.0];
+          mView = lookAt(eye, [0, 0.6, 0], [0, 1, 0]);
+        } else {
+          mView = oView; // back to normal axonometric
+        }
         break;
 
       case '9':
         // toggle between parallel vs perspective views
-
-        break;
-
-      //case 'arrow keys':
-      // adjust axonometric/oblique parameters
-      case 'ArrowUp':
-        gamma += 0.5;
-        break;
-      case 'ArrowDown':
-        gamma -= 0.5;
-        break;
-
-      case 'ArrowLeft':
-        theta += 0.5;
-        break;
-
-      case 'ArrowRight':
-        theta -= 0.5;
+        isPerspective = !isPerspective;
         break;
 
       case 'r':
@@ -166,15 +204,19 @@ function setup(shaders) {
         //move forwards
         tankPos[0] -= 0.05 * Math.sin(-radians(cabinAngle));
         tankPos[2] += 0.05 * Math.cos(radians(cabinAngle));
+        //tankPos[0] -= 0.05; estes é caso não seja preciso
+        //tankPos[2] += 0.05; que o tanque ande na direção que o canhão está apontado
         tireRotation += 5;
         break;
 
       case 'e':
       case 'E':
         //move backwards (ele vira de acordo com a direção que o canhão aponta
-        //agora não se eles querem que as rodas tambêm rodem)
+        //agora não sei eles querem que as rodas tambêm rodem a evidenciar essa cena)
         tankPos[0] += 0.05 * Math.sin(-radians(cabinAngle));
         tankPos[2] -= 0.05 * Math.cos(radians(cabinAngle));
+        // tankPos[0] += 0.05; estes é caso não seja precisa
+        // tankPos[2] -= 0.05; que o tanque ande na direção que o canhão está apontado
         tireRotation -= 5;
         break;
 
@@ -204,9 +246,38 @@ function setup(shaders) {
         cabinAngle -= 5;
         break;
 
+
+      //quando mudas as coordenadas da cabine ou do canhão, os tomatos deixam de sair de dentro do canhão
+      //do código que faz cenas aqui é procurar nas linhas: 533 a 542, 603 a 611 
       case 'z':
       case 'Z':
         //shoot tomato
+        const projSpeed = 0.2;
+        const cannonLength = 0.0;// match cannon barrel scale
+        const baseY = 0.5; //height of cabin
+
+        //ângulos de rotação da cabine e do canhão
+        const cabinLoc = radians(cabinAngle);
+        const cannonLoc = radians(cannonAngle);
+
+        //coordenadas iniciais
+        const startX = tankPos[0] + cannonLength * Math.sin(-cabinLoc) * Math.cos(cannonLoc);
+        const startY = baseY + cannonLength * Math.sin(-cannonLoc);
+        const startZ = tankPos[2] + cannonLength * Math.cos(cabinLoc) * Math.cos(cannonLoc);
+
+        //direção do tomate
+        const dir = [
+          -Math.sin(-cabinLoc) * Math.cos(cannonLoc),
+          -Math.sin(cannonLoc),
+          Math.cos(cabinLoc) * Math.cos(cannonLoc)
+        ];
+
+        //inicializa um projetil com posição, velocidade e tempo
+        projectiles.push({
+          pos: [startX, startY, startZ],
+          vel: dir.map(d => d * projSpeed),
+          time: 0
+        });
         break;
 
       case ' ':
@@ -242,16 +313,20 @@ function setup(shaders) {
     uploadMatrix("u_projection", mProjection);
   }
 
+  //matrix usada para a projeção oblíqua
   function obliqueMatrix(thetaDeg = 45, gammaDeg = 45) {
     theta = thetaDeg * Math.PI / 180.0;
     gamma = gammaDeg * Math.PI / 180.0;
 
+    const cotGamma = 1 / Math.tan(gamma);
+    const l = Math.cos(theta) * cotGamma;
+    const m = Math.sin(theta) * cotGamma;
     // Standard oblique shear matrix
     return [
-      1, 0, Math.cos(theta) / Math.tan(gamma), 0,
-      0, 1, Math.sin(theta) / Math.tan(gamma), 0,
-      0, 0, 1, 0,
-      0, 0, 0, 1
+      [1, 0, l, 0],
+      [0, 1, m, 0],
+      [0, 0, 1, 0],
+      [0, 0, 0, 1]
     ];
   }
 
@@ -454,6 +529,7 @@ function setup(shaders) {
   }
 
   function render() {
+    //este animation é usado para a rotação do drone
     if (animation) time += speed;
     window.requestAnimationFrame(render);
 
@@ -461,19 +537,47 @@ function setup(shaders) {
 
     gl.useProgram(program);
 
-    const range = 2.0;
-
+    // é preciso mudar um bocado o range para a proj. Oblíqua ver-se bem
+    const range = isOblique ? 3.0 : 2.0;
     const baseOrtho = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
 
+    for (let p of projectiles) {
+      p.time += 0.016; // roughly 60fps
+      p.pos[0] += p.vel[0];
+      p.pos[1] += p.vel[1];
+      p.pos[2] += p.vel[2];
+      // Add gravity
+      p.vel[1] -= 0.01; // gravity effect
+    }
+    // Remove projectiles that hit the ground or go too far
+    projectiles = projectiles.filter(p => p.pos[1] > 0 && Math.abs(p.pos[0]) < 50 && Math.abs(p.pos[2]) < 50);
+
     if (!multiView) {
-      mProjection = baseOrtho;
+      mProjection = baseOrtho; //original view
+
+      //renders the perspective view
+      if (isPerspective) {
+        const fov = 60; // field of view in degrees
+        const near = 0.1;
+        const far = 20.0;
+        mProjection = perspective(fov, aspect, near, far);
+      } else {
+        mProjection = baseOrtho;
+      }
+
+      // renders the oblique view
+      if (isOblique) {
+        const oblique = obliqueMatrix(theta, gamma);
+        mProjection = mult(oblique, baseOrtho);
+      }
 
       uploadProjection(mProjection);
       loadMatrix(mView);
       gl.viewport(0, 0, canvas.width, canvas.height);
       floor(floorSize, tileSize, tileHeight);
       tank();
-    } else {
+    }
+    else { //when multiview is true
 
       const halfWidth = canvas.width / 2;
       const halfHeight = canvas.height / 2;
@@ -507,6 +611,17 @@ function setup(shaders) {
       drawView(views.axon, halfWidth, 0, halfWidth, halfHeight);           // bottom-right
     }
 
+    //render projectiles
+    for (let p of projectiles) {
+      pushMatrix();
+      multTranslation(p.pos);
+      multScale([0.05, 0.05, 0.05]); // small sphere
+      const uColor = gl.getUniformLocation(program, "u_color");
+      gl.uniform4fv(uColor, [1.0, 0.0, 0.0, 1.0]); // red projectile
+      uploadModelView();
+      SPHERE.draw(gl, program, mode);
+      popMatrix();
+    }
   }
 }
 
