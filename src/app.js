@@ -18,6 +18,8 @@ let gamma = 63.4;
 let zoom = 1.0;
 let projectiles = [];
 
+let nodeMap = new Map();
+
 //projection booleans
 let multiView = false;
 let isOblique = false;
@@ -251,32 +253,51 @@ function setup(shaders) {
       //do código que faz cenas aqui é procurar nas linhas: 533 a 542, 603 a 611 
       case 'z':
       case 'Z':
-        //shoot tomato
-        const projSpeed = 0.2;
-        const cannonLength = 0.0;// match cannon barrel scale
-        const baseY = 0.5; //height of cabin
-
-        //ângulos de rotação da cabine e do canhão
-        const cabinLoc = radians(cabinAngle);
-        const cannonLoc = radians(cannonAngle);
-
-        //coordenadas iniciais
-        const startX = tankPos[0] + cannonLength * Math.sin(-cabinLoc) * Math.cos(cannonLoc);
-        const startY = baseY + cannonLength * Math.sin(-cannonLoc);
-        const startZ = tankPos[2] + cannonLength * Math.cos(cabinLoc) * Math.cos(cannonLoc);
-
-        //direção do tomate
-        const dir = [
-          -Math.sin(-cabinLoc) * Math.cos(cannonLoc),
-          -Math.sin(cannonLoc),
-          Math.cos(cabinLoc) * Math.cos(cannonLoc)
-        ];
-
-        //inicializa um projetil com posição, velocidade e tempo
+        const cannonLength = 0.7;
+        
+        // Start from tank position
+        let worldX = tankPos[0];
+        let worldY = tankPos[1]; 
+        let worldZ = tankPos[2];
+        
+        // Apply cabin rotation (around Y-axis)
+        const cabinRad = radians(cabinAngle);
+        
+        // Cannon base offset from tank center (adjust these to match your tankCannon function)
+        const cannonBaseX = 0.0;
+        const cannonBaseY = 0.5;  // Height of cannon base
+        const cannonBaseZ = 0.2;  // Forward offset
+        
+        // Rotate cannon base by cabin angle
+        const rotatedBaseX = cannonBaseZ * Math.sin(-cabinRad);
+        const rotatedBaseZ = cannonBaseZ * Math.cos(cabinRad);
+        
+        worldX += rotatedBaseX;
+        worldY += cannonBaseY;
+        worldZ += rotatedBaseZ;
+        
+        // Apply cannon elevation (around X-axis)
+        const cannonRad = radians(cannonAngle);
+        const tipOffsetZ = cannonLength * Math.cos(cannonRad);
+        const tipOffsetY = cannonLength * Math.sin(cannonRad);
+        
+        // Rotate cannon tip by cabin angle again
+        const rotatedTipX = tipOffsetZ * Math.sin(-cabinRad);
+        const rotatedTipZ = tipOffsetZ * Math.cos(cabinRad);
+        
+        const finalX = worldX + rotatedTipX;
+        const finalY = worldY - tipOffsetY;  // Negative because cannon points "down" when elevated
+        const finalZ = worldZ + rotatedTipZ;
+        
+        // Direction vector
+        const dirX = Math.sin(-cabinRad) * Math.cos(cannonRad);
+        const dirY = -Math.sin(cannonRad);
+        const dirZ = Math.cos(cabinRad) * Math.cos(cannonRad);
+        
         projectiles.push({
-          pos: [startX, startY, startZ],
-          vel: dir.map(d => d * projSpeed),
-          time: 0
+            pos: [finalX, finalY, finalZ],
+            vel: [dirX * 0.2, dirY * 0.2, dirZ * 0.2],
+            time: 0
         });
         break;
 
@@ -459,7 +480,6 @@ function setup(shaders) {
     CYLINDER.draw(gl, program, mode);
     popMatrix();
     pushMatrix();
-    pushMatrix();
     multTranslation([0.0, 0.5, 0.2]);
     multRotationX(cannonAngle);
     multRotationX(90);
@@ -467,7 +487,6 @@ function setup(shaders) {
     gl.uniform4fv(uColor, colorYgreen);
     uploadModelView();
     CYLINDER.draw(gl, program, mode);
-    popMatrix();
     popMatrix();
   }
 
@@ -526,6 +545,20 @@ function setup(shaders) {
     tankBase();
     tankCabin();
     drone();
+  }
+
+  function tomatoes() {
+    //render projectiles
+    for (let p of projectiles) {
+      pushMatrix();
+      multTranslation(p.pos);
+      multScale([0.05, 0.05, 0.05]); // small sphere
+      const uColor = gl.getUniformLocation(program, "u_color");
+      gl.uniform4fv(uColor, [1.0, 0.0, 0.0, 1.0]); // red projectile
+      uploadModelView();
+      SPHERE.draw(gl, program, mode);
+      popMatrix();
+    }
   }
 
   function render() {
@@ -590,6 +623,7 @@ function setup(shaders) {
         loadMatrix(viewMatrix);
         floor(floorSize, tileSize, tileHeight);
         tank();
+        // desenhar os nos recursivamente
       }
 
       // Define the 4 camera views:
@@ -604,24 +638,16 @@ function setup(shaders) {
         ),
       };
 
-      // Render each in its quadrant
+     if (multiView){
+       // Render each in its quadrant
       drawView(views.front, 0, halfHeight, halfWidth, halfHeight);         // top-left
       drawView(views.right, halfWidth, halfHeight, halfWidth, halfHeight); // top-right
       drawView(views.top, 0, 0, halfWidth, halfHeight);                    // bottom-left
       drawView(views.axon, halfWidth, 0, halfWidth, halfHeight);           // bottom-right
     }
+     }
 
-    //render projectiles
-    for (let p of projectiles) {
-      pushMatrix();
-      multTranslation(p.pos);
-      multScale([0.05, 0.05, 0.05]); // small sphere
-      const uColor = gl.getUniformLocation(program, "u_color");
-      gl.uniform4fv(uColor, [1.0, 0.0, 0.0, 1.0]); // red projectile
-      uploadModelView();
-      SPHERE.draw(gl, program, mode);
-      popMatrix();
-    }
+    tomatoes();
   }
 }
 
