@@ -1,24 +1,36 @@
 import { buildProgramFromSources, loadShadersFromURLS, setupWebGL } from "../../libs/utils.js";
 import { ortho, lookAt, flatten, mult, perspective } from "../../libs/MV.js";
 import { modelView, loadMatrix, multRotationX, multRotationY, multRotationZ, multScale, multTranslation, popMatrix, pushMatrix } from "../../libs/stack.js";
+import { scene } from './scene.js';
 
 import * as CUBE from '../../libs/objects/cube.js';
 import * as SPHERE from '../../libs/objects/sphere.js';
 import * as CYLINDER from '../../libs/objects/cylinder.js';
 
-let time = 0;
 let speed = 1 / 5.0;
 let animation = true;
-let tankPos = [0.0, 0.0, 0.0];
-let cabinAngle = 0;
-let cannonAngle = 0;
-let tireRotation = 0;
 let theta = 45;
 let gamma = 63.4;
 let zoom = 1.0;
 let projectiles = [];
+let time = 0;
+
+const tank = scene[0];
+const rWheels = scene[1];
+const lWheels = scene[2];
+const drone = scene[3];
 
 let nodeMap = new Map();
+
+  function buildNodeMap(node) {
+  nodeMap.set(node.name, node);
+  if (node.children) {
+    for (let child of node.children) {
+      buildNodeMap(child);
+    }
+  }
+  }
+
 
 //projection booleans
 let multiView = false;
@@ -37,15 +49,6 @@ const tireColor = [0.0, 0.0, 0.0, 1.0];
 const tireSpacing = 0.2;
 const numTiresPerSide = 6;
 
-const drone_orbit = 50;
-
-//color presets
-const colorDgreen = [0.1, 0.3, 0.1, 1.0];
-const colorLgreen = [0.1, 0.5, 0.1, 1.0];
-const colorYgreen = [0.3, 0.3, 0.1, 1.0];
-const colorGwhite = [0.0, 0.0, 0.0, 0.5];
-const colorLblue = [0.0, 0.0, 1.0, 0.5];
-const colorDblue = [0.0, 0.0, 0.5, 1.0];
 
 //types of views
 const fView = lookAt([0, 0.6, 1], [0, 0.6, 0], [0, 1, 0]); // front view
@@ -77,6 +80,9 @@ function setup(shaders) {
     return deg * Math.PI / 180.0;
   }
 
+
+
+
   canvas.addEventListener("wheel", (event) => {
     event.preventDefault();
 
@@ -89,6 +95,8 @@ function setup(shaders) {
 
     // updateZoomDisplay();
   });
+
+  
 
   //
   //case 'arrow keys':
@@ -254,50 +262,50 @@ function setup(shaders) {
       case 'z':
       case 'Z':
         const cannonLength = 0.7;
-        
+
         // Start from tank position
         let worldX = tankPos[0];
-        let worldY = tankPos[1]; 
+        let worldY = tankPos[1];
         let worldZ = tankPos[2];
-        
+
         // Apply cabin rotation (around Y-axis)
         const cabinRad = radians(cabinAngle);
-        
+
         // Cannon base offset from tank center (adjust these to match your tankCannon function)
         const cannonBaseX = 0.0;
         const cannonBaseY = 0.5;  // Height of cannon base
         const cannonBaseZ = 0.2;  // Forward offset
-        
+
         // Rotate cannon base by cabin angle
         const rotatedBaseX = cannonBaseZ * Math.sin(-cabinRad);
         const rotatedBaseZ = cannonBaseZ * Math.cos(cabinRad);
-        
+
         worldX += rotatedBaseX;
         worldY += cannonBaseY;
         worldZ += rotatedBaseZ;
-        
+
         // Apply cannon elevation (around X-axis)
         const cannonRad = radians(cannonAngle);
         const tipOffsetZ = cannonLength * Math.cos(cannonRad);
         const tipOffsetY = cannonLength * Math.sin(cannonRad);
-        
+
         // Rotate cannon tip by cabin angle again
         const rotatedTipX = tipOffsetZ * Math.sin(-cabinRad);
         const rotatedTipZ = tipOffsetZ * Math.cos(cabinRad);
-        
+
         const finalX = worldX + rotatedTipX;
         const finalY = worldY - tipOffsetY;  // Negative because cannon points "down" when elevated
         const finalZ = worldZ + rotatedTipZ;
-        
+
         // Direction vector
         const dirX = Math.sin(-cabinRad) * Math.cos(cannonRad);
         const dirY = -Math.sin(cannonRad);
         const dirZ = Math.cos(cabinRad) * Math.cos(cannonRad);
-        
+
         projectiles.push({
-            pos: [finalX, finalY, finalZ],
-            vel: [dirX * 0.2, dirY * 0.2, dirZ * 0.2],
-            time: 0
+          pos: [finalX, finalY, finalZ],
+          vel: [dirX * 0.2, dirY * 0.2, dirZ * 0.2],
+          time: 0
         });
         break;
 
@@ -316,6 +324,42 @@ function setup(shaders) {
   CUBE.init(gl);
   CYLINDER.init(gl);
   SPHERE.init(gl);
+
+  buildNodeMap(tank);
+  buildNodeMap(rWheels);
+  buildNodeMap(lWheels);
+  buildNodeMap(drone);
+
+
+  
+
+
+  function drawNode(gl, program, node, mode) {
+    pushMatrix();
+
+    // apply transformations in fixed order
+    if (node.translation) multTranslation(node.translation);
+    if (node.rotation) {
+        multRotationX(node.rotation[0]);
+        multRotationY(node.rotation[1]);
+        multRotationZ(node.rotation[2]);
+    }
+    if (node.scale) multScale(node.scale);
+
+    // draw if leaf
+    if (node.primitive) {
+        const uColor = gl.getUniformLocation(program, "u_color");
+        gl.uniform4fv(uColor, node.color || [1, 1, 1, 1]);
+        uploadModelView();
+        node.primitive.draw(gl, program, mode);
+    }
+
+    // recurse
+    if (node.children) for (const child of node.children)
+        drawNode(gl, program, child, mode);
+
+    popMatrix();
+  }
 
   window.requestAnimationFrame(render);
 
@@ -403,149 +447,6 @@ function setup(shaders) {
     }
   }
 
-  //body of the drone with the propellers and cannon
-  function drone_body(uColor) {
-    gl.uniform4fv(uColor, colorGwhite);
-    uploadModelView();
-    SPHERE.draw(gl, program, mode);
-    pushMatrix();
-    multRotationY(cabinAngle);
-    pushMatrix();
-    multTranslation([0.0, 0.0, 0.3]);
-    multRotationX(cannonAngle);
-    multRotationX(90);
-    multScale([0.2, 0.85, 0.2]);
-    gl.uniform4fv(uColor, colorDblue);
-    uploadModelView();
-    CYLINDER.draw(gl, program, mode);
-    popMatrix();
-    popMatrix();
-
-    const rotorUPositions = [
-      [0.4, 0.3, 0.4],
-      [-0.4, 0.3, 0.4],
-      [0.4, 0.3, -0.4],
-      [-0.4, 0.3, -0.4]
-    ];
-    const rotorDPositions = [
-      [-0.4, -0.3, -0.4],
-      [0.4, -0.3, -0.4],
-      [-0.4, -0.3, 0.4],
-      [0.4, -0.3, 0.4]
-    ];
-    for (const [x, y, z] of rotorUPositions) {
-      pushMatrix();
-      multTranslation([x, y, z]);
-      multScale([0.5, 0.1, 0.5]);
-      gl.uniform4fv(uColor, colorLblue);
-      uploadModelView();
-      CYLINDER.draw(gl, program, mode);
-      popMatrix();
-    }
-
-    for (const [x, y, z] of rotorDPositions) {
-      pushMatrix();
-      multTranslation([x, y, z]);
-      multScale([0.5, 0.1, 0.5]);
-      gl.uniform4fv(uColor, colorLblue);
-      uploadModelView();
-      CYLINDER.draw(gl, program, mode);
-      popMatrix();
-    }
-
-
-  }
-
-  // makes the rotation of the drone's body
-  function drone() {
-    const uColor = gl.getUniformLocation(program, "u_color");
-    pushMatrix();
-    multRotationY(360 * time / drone_orbit);
-    multTranslation([0.5, 0.8, 0.5]);
-    multRotationY(-360 * time / drone_orbit); //stops it fromm rotating over its axis
-    multScale([0.2, 0.2, 0.2]);
-    drone_body(uColor);
-    popMatrix();
-  }
-
-  // makes the tank's cannon 
-  function tankCannon() {
-    const uColor = gl.getUniformLocation(program, "u_color");
-    pushMatrix();
-    multTranslation([0.0, 0.5, 0.2]);
-    multRotationZ(90);
-    multScale([0.1, 0.1, 0.1]);
-    gl.uniform4fv(uColor, colorYgreen);
-    uploadModelView();
-    CYLINDER.draw(gl, program, mode);
-    popMatrix();
-    pushMatrix();
-    multTranslation([0.0, 0.5, 0.2]);
-    multRotationX(cannonAngle);
-    multRotationX(90);
-    multScale([0.05, 0.7, 0.05]);
-    gl.uniform4fv(uColor, colorYgreen);
-    uploadModelView();
-    CYLINDER.draw(gl, program, mode);
-    popMatrix();
-  }
-
-  // makes the cabin of the tank
-  function tankCabin() {
-    const uColor = gl.getUniformLocation(program, "u_color");
-    pushMatrix();
-    multRotationY(cabinAngle);
-    pushMatrix();
-    multScale([0.5, 0.5, 0.5]);
-    multTranslation([0, 0.8, 0]);
-    gl.uniform4fv(uColor, colorDgreen);
-    uploadModelView();
-    SPHERE.draw(gl, program, mode);
-    popMatrix();
-    tankCannon();
-    popMatrix();
-  }
-
-  // makes the tank's base
-  function tankBase() {
-    const uColor = gl.getUniformLocation(program, "u_color");
-
-    pushMatrix();
-    multTranslation([0, 0.1, 0]);
-    multScale([0.8, 0.1, 1.0]);
-    gl.uniform4fv(uColor, colorDgreen);
-    uploadModelView();
-    CUBE.draw(gl, program, mode);
-    popMatrix();
-
-    pushMatrix();
-    multTranslation([0, 0.07, 0]);
-    multScale([1.0, 0.15, 1.2]);
-    multTranslation([0, 1.0, 0]);
-    gl.uniform4fv(uColor, colorYgreen);
-    uploadModelView();
-    CUBE.draw(gl, program, mode);
-    popMatrix();
-
-    pushMatrix();
-    multRotationY(90);
-    multScale([1.1, 0.2, 1.0]);
-    multTranslation([0, 1.5, 0]);
-    gl.uniform4fv(uColor, colorLgreen);
-    uploadModelView();
-    CYLINDER.draw(gl, program, mode);
-    popMatrix();
-  }
-
-  //mixes the whole tank's body
-  function tank() {
-    multTranslation(tankPos);
-    sideTires(tireSize, tireHeight, tireColor, tireSpacing, numTiresPerSide, 0.53, 0.1);
-    sideTires(tireSize, tireHeight, tireColor, tireSpacing, numTiresPerSide, -0.53, 0.1);
-    tankBase();
-    tankCabin();
-    drone();
-  }
 
   function tomatoes() {
     //render projectiles
@@ -608,7 +509,14 @@ function setup(shaders) {
       loadMatrix(mView);
       gl.viewport(0, 0, canvas.width, canvas.height);
       floor(floorSize, tileSize, tileHeight);
-      tank();
+      drawNode(gl, program, tank, mode);
+      drawNode(gl, program, rWheels, mode);
+      drawNode(gl, program, lWheels, mode);
+      drawNode(gl, program, drone, mode);
+
+
+
+    
     }
     else { //when multiview is true
 
@@ -622,7 +530,13 @@ function setup(shaders) {
         uploadProjection(mProjection);
         loadMatrix(viewMatrix);
         floor(floorSize, tileSize, tileHeight);
-        tank();
+        drawNode(gl, program, tank, mode);
+        drawNode(gl, program, drone, mode);
+        drawNode(gl, program, place_holder, mode);
+      drawNode(gl, program, place_holder2, mode);
+
+
+        
         // desenhar os nos recursivamente
       }
 
@@ -638,14 +552,14 @@ function setup(shaders) {
         ),
       };
 
-     if (multiView){
-       // Render each in its quadrant
-      drawView(views.front, 0, halfHeight, halfWidth, halfHeight);         // top-left
-      drawView(views.right, halfWidth, halfHeight, halfWidth, halfHeight); // top-right
-      drawView(views.top, 0, 0, halfWidth, halfHeight);                    // bottom-left
-      drawView(views.axon, halfWidth, 0, halfWidth, halfHeight);           // bottom-right
+      if (multiView) {
+        // Render each in its quadrant
+        drawView(views.front, 0, halfHeight, halfWidth, halfHeight);         // top-left
+        drawView(views.right, halfWidth, halfHeight, halfWidth, halfHeight); // top-right
+        drawView(views.top, 0, 0, halfWidth, halfHeight);                    // bottom-left
+        drawView(views.axon, halfWidth, 0, halfWidth, halfHeight);           // bottom-right
+      }
     }
-     }
 
     tomatoes();
   }
