@@ -24,21 +24,15 @@ const wheelSpace = 1
 
   let xPos = 0;
 
-  function whellSeparation(id){
-    xPos = (id - (numWheels - 1) / 2) * wheelSpace;
-
-  }
-
     
 let tankPos = [0, 0, 0];
 let cabinAngle = 0;
 let cannonAngle = 0;
 let time = 0;
-const drone_orbit = 5; // seconds for a full orbit
+const drone_orbit = 5; 
 let tireRotation = 0;
 
 
-//color presets
 const colorDgreen = [0.1, 0.3, 0.1, 1.0];
 const colorLgreen = [0.1, 0.5, 0.1, 1.0];
 const colorYgreen = [0.3, 0.3, 0.1, 1.0];
@@ -49,6 +43,9 @@ const colorDblue = [0.0, 0.0, 0.5, 1.0];
 
 var scene = [
   {
+    "name": "scene",
+    "children": [
+      {
     "name": "tank",
     "translation": tankPos,
     "rotation": [0, 0, 0],
@@ -311,4 +308,7 @@ var scene = [
               }]
           }]
         }]
-      }];
+      }
+    ]
+  }
+  ];

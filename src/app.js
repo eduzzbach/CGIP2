@@ -15,10 +15,7 @@ let zoom = 1.0;
 let projectiles = [];
 let time = 0;
 
-const tank = scene[0];
-const rWheels = scene[1];
-const lWheels = scene[2];
-const drone = scene[3];
+const graphScene = scene[0];
 
 let nodeMap = new Map();
 
@@ -211,9 +208,12 @@ function setup(shaders) {
 
       case 'q':
       case 'Q':
-        //move forwards
+        const tankNode = nodeMap.get("tank");
         tankPos[0] -= 0.05 * Math.sin(-radians(cabinAngle));
         tankPos[2] += 0.05 * Math.cos(radians(cabinAngle));
+
+        tankNode.translation = [...tankPos]; 
+     
         //tankPos[0] -= 0.05; estes é caso não seja preciso
         //tankPos[2] += 0.05; que o tanque ande na direção que o canhão está apontado
         tireRotation += 5;
@@ -223,8 +223,8 @@ function setup(shaders) {
       case 'E':
         //move backwards (ele vira de acordo com a direção que o canhão aponta
         //agora não sei eles querem que as rodas tambêm rodem a evidenciar essa cena)
-        tankPos[0] += 0.05 * Math.sin(-radians(cabinAngle));
-        tankPos[2] -= 0.05 * Math.cos(radians(cabinAngle));
+        tankPos[0] += 0.05 * Math.sin(-radians(0.5));
+        tankPos[2] -= 0.05 * Math.cos(radians(0.5));
         // tankPos[0] += 0.05; estes é caso não seja precisa
         // tankPos[2] -= 0.05; que o tanque ande na direção que o canhão está apontado
         tireRotation -= 5;
@@ -325,14 +325,12 @@ function setup(shaders) {
   CYLINDER.init(gl);
   SPHERE.init(gl);
 
-  buildNodeMap(tank);
-  buildNodeMap(rWheels);
-  buildNodeMap(lWheels);
-  buildNodeMap(drone);
+  function buildNodeMap(node) {
+    nodeMap.set(node.name, node);
+      if (node.children) node.children.forEach(buildNodeMap);
+  }
 
-
-  
-
+  buildNodeMap(graphScene);
 
   function drawNode(gl, program, node, mode) {
     pushMatrix();
@@ -425,28 +423,6 @@ function setup(shaders) {
     }
   }
 
-  //makes the tires
-  function sideTires(tireSize, tireHeight, color, spacing, numTires, yPos, zPos) {
-    const uColor = gl.getUniformLocation(program, "u_color");
-
-    for (let i = 0; i < numTires; i++) {
-      pushMatrix();
-      multRotationZ(90);
-      const xPos = (i - (numTires - 1) / 2) * spacing;
-      multRotationY(90);
-      multTranslation([xPos, yPos, zPos]);
-      multRotationY(tireRotation);
-
-      multScale([tireSize, tireHeight / 2, tireSize]);
-
-      gl.uniform4fv(uColor, color);
-      uploadModelView();
-      CYLINDER.draw(gl, program, mode);
-      popMatrix();
-
-    }
-  }
-
 
   function tomatoes() {
     //render projectiles
@@ -509,11 +485,7 @@ function setup(shaders) {
       loadMatrix(mView);
       gl.viewport(0, 0, canvas.width, canvas.height);
       floor(floorSize, tileSize, tileHeight);
-      drawNode(gl, program, tank, mode);
-      drawNode(gl, program, rWheels, mode);
-      drawNode(gl, program, lWheels, mode);
-      drawNode(gl, program, drone, mode);
-
+      drawNode(gl, program, graphScene, mode);
 
 
     
@@ -530,11 +502,7 @@ function setup(shaders) {
         uploadProjection(mProjection);
         loadMatrix(viewMatrix);
         floor(floorSize, tileSize, tileHeight);
-        drawNode(gl, program, tank, mode);
-        drawNode(gl, program, drone, mode);
-        drawNode(gl, program, place_holder, mode);
-      drawNode(gl, program, place_holder2, mode);
-
+        drawNode(gl, program, graphScene, mode);
 
         
         // desenhar os nos recursivamente
