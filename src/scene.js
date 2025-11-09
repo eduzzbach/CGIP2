@@ -28,7 +28,7 @@ const wheelSpace = 1
 let tankPos = [0, 0, 0];
 let cabinAngle = 0;
 let cannonAngle = 0;
-let time = 0;
+let time = 0.4;
 const drone_orbit = 5; 
 let tireRotation = 0;
 
@@ -37,8 +37,8 @@ const colorDgreen = [0.1, 0.3, 0.1, 1.0];
 const colorLgreen = [0.1, 0.5, 0.1, 1.0];
 const colorYgreen = [0.3, 0.3, 0.1, 1.0];
 const colorGwhite = [0.0, 0.0, 0.0, 0.5];
-const colorLblue = [0.0, 0.0, 1.0, 0.5];
-const colorDblue = [0.0, 0.0, 0.5, 1.0];
+const colorLblue = [0.0, 0.3, 1.0, 0.5];
+const colorDblue = [0., 0., 0.7, 1.0];
 
 
 var scene = [
@@ -84,7 +84,7 @@ var scene = [
           {
             "name": "cabin",
             "translation": [0, .7, 0],
-            "rotation": [0, cabinAngle, 0],
+            "rotation": [0, 0, 0],
             "scale": [0.5, 1.5 , 0.5],
             "primitive": SPHERE,
             "color": colorDgreen,
@@ -94,8 +94,8 @@ var scene = [
                 "translation": [-0.45, 0, 0],
                 "children": [
                   {
-                    "name": "cannonPivot",
-                    "rotation": [-Math.PI / 6, 0, 0],   // small downward tilt (aiming up = smaller angle)
+                    "name": "cannon",
+                    "rotation": [0, 0, 0],  
                     "translation": [-0.05, 0, 0], 
                     "children": [
                       {
@@ -106,8 +106,8 @@ var scene = [
                       },
                       {
                         "name": "cannonBarrel",
-                        "rotation": [0, 0, -90],         // orient cylinder forward along +Z
-                        "scale": [0.05, 0.8, 0.05],
+                        "rotation": [0, 0, -90],  
+                        "scale": [0.07, 1, 0.05],
                         "primitive": CYLINDER,
                         "color": colorYgreen
                         }]
@@ -116,7 +116,11 @@ var scene = [
             }]
         }]
     },
+
     {
+      "name": "wheels",
+      "children": [
+        {
       "name": "lWheels",
       "translation": [-0.53, 0.1 , -.2],
       "rotation": [0,0,90],
@@ -125,6 +129,7 @@ var scene = [
         {
           "name": "lWheel1",
           "translation": [0, 0, (1 - (numWheels - 1) / 2) * wheelSpace],
+          "rotation": [0,0,0],
           "color": [0, 0, 0, 1],
           "primitive": CYLINDER
 
@@ -132,6 +137,7 @@ var scene = [
       {
         "name": "lWheel2",
         "translation": [0, 0, (2 - (numWheels - 1) / 2) * wheelSpace],
+        "rotation": [0,0,0],
         "color": [0, 0, 0, 1],
         "primitive": CYLINDER
 
@@ -139,6 +145,7 @@ var scene = [
       {
         "name": "lWheel3",
         "translation": [0, 0, (3 - (numWheels - 1) / 2) * wheelSpace],
+        "rotation": [0,0,0],
         "color": [0, 0, 0, 1],
         "primitive": CYLINDER
 
@@ -146,18 +153,21 @@ var scene = [
       {
         "name": "lWheel4",
         "translation": [0, 0, (4 - (numWheels - 1) / 2) * wheelSpace],
+        "rotation": [0,0,0],
         "color": [0, 0, 0, 1],
         "primitive": CYLINDER
       },
       {
         "name": "lWheel5",
         "translation": [0, 0, (5 - (numWheels - 1) / 2) * wheelSpace],
+        "rotation": [0,0,0],
         "color": [0, 0, 0, 1],
         "primitive": CYLINDER
       },
       {
         "name": "lWheel6",
         "translation": [0, 0, (6 - (numWheels - 1) / 2) * wheelSpace],
+        "rotation": [0,0,0],
         "color": [0, 0, 0, 1],
         "primitive": CYLINDER
       }]
@@ -172,6 +182,7 @@ var scene = [
         {
           "name": "rWheel1",
           "translation": [0, 0, (1 - (numWheels - 1) / 2) * wheelSpace],
+          "rotation": [0,0,0],
           "color": [0, 0, 0, 1],
           "primitive": CYLINDER
 
@@ -179,6 +190,8 @@ var scene = [
       {
         "name": "rWheel2",
         "translation": [0, 0, (2 - (numWheels - 1) / 2) * wheelSpace],
+        "rotation": [0,0,0],
+        "rotation": [0,0,0],
         "color": [0, 0, 0, 1],
         "primitive": CYLINDER
 
@@ -186,39 +199,55 @@ var scene = [
       {
         "name": "rWheel3",
         "translation": [0, 0, (3 - (numWheels - 1) / 2) * wheelSpace],
+        "rotation": [0,0,0],
+        "rotation": [0,0,0],
         "color": [0, 0, 0, 1],
-        "primitive": CYLINDER
+        "primitive": CYLINDER,
+        "children": [
+          {//PUT IN LINE MODE AND SEE WHEEL SPIN
+            "translation": [0.3, 0.1, 0],
+            "rotation": [0,0,0],
+            "scale": [0.1, 0.1, 0.1],
+            "color": [1, 0, 0, 1],
+            "primitive": CUBE
+          }
+        ]
 
       },
       {
         "name": "rWheel4",
         "translation": [0, 0, (4 - (numWheels - 1) / 2) * wheelSpace],
+        "rotation": [0,0,0],
         "color": [0, 0, 0, 1],
         "primitive": CYLINDER
       },
       {
         "name": "rWheel5",
         "translation": [0, 0, (5 - (numWheels - 1) / 2) * wheelSpace],
+        "rotation": [0,0,0],
         "color": [0, 0, 0, 1],
         "primitive": CYLINDER
       },
       {
         "name": "rWheel6",
         "translation": [0, 0, (6 - (numWheels - 1) / 2) * wheelSpace],
+        "rotation": [0,0,0],
         "color": [0, 0, 0, 1],
         "primitive": CYLINDER
       }]
+    }
+      ]
     },
     
     {
       
     "name": "drone",
-    "rotation": [0, 360*time / drone_orbit, 0],
+    "rotation": [0,0, 0],
     "children": [
       {
         "name": "droneT",
         "translation": [.5, 1.2, .5],
-        "rotation": [0, -360*time / drone_orbit, 0],
+        "rotation": [0, 0, 0],
         "scale": [0.3, 0.3, 0.3],
         "children": [
           {

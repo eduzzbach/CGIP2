@@ -14,6 +14,12 @@ let gamma = 63.4;
 let zoom = 1.0;
 let projectiles = [];
 let time = 0;
+   
+let tankPos = [0, 0, 0];
+let cabinAngle = 0;
+let cannonAngle = 0;
+const drone_orbit = 5; 
+let tireRotation = 0;
 
 const graphScene = scene[0];
 
@@ -139,6 +145,11 @@ function setup(shaders) {
 
 
   document.onkeydown = function (event) {
+
+    const sceneNode = nodeMap.get("scene");
+    const cabinNode = nodeMap.get("cabin");
+    const leftWheelNames = ['lWheel1', 'lWheel2', 'lWheel3', 'lWheel4', 'lWheel5', 'lWheel6'];
+    const rightWheelNames = ['rWheel1', 'rWheel2', 'rWheel3', 'rWheel4', 'rWheel5', 'rWheel6'];
     console.log("Key pressed:", event.key);
     switch (event.key) {
       case '1':
@@ -208,27 +219,62 @@ function setup(shaders) {
 
       case 'q':
       case 'Q':
-        const tankNode = nodeMap.get("tank");
         tankPos[0] -= 0.05 * Math.sin(-radians(cabinAngle));
         tankPos[2] += 0.05 * Math.cos(radians(cabinAngle));
 
-        tankNode.translation = [...tankPos]; 
+        if (sceneNode){
+          sceneNode.translation = [...tankPos]; 
+        }
+
      
         //tankPos[0] -= 0.05; estes é caso não seja preciso
         //tankPos[2] += 0.05; que o tanque ande na direção que o canhão está apontado
         tireRotation += 5;
+
+        leftWheelNames.forEach(wheelName => {
+            let wheel = nodeMap.get(wheelName);
+            if (wheel) {
+                wheel.rotation = [0, 360 * tireRotation/ 180, 0];
+            }
+        });
+
+        rightWheelNames.forEach(wheelName => {
+            let wheel = nodeMap.get(wheelName);
+            if (wheel) {
+                wheel.rotation = [0, 360 * tireRotation/ 180, 0];
+            }
+        });
+
         break;
 
       case 'e':
       case 'E':
-        //move backwards (ele vira de acordo com a direção que o canhão aponta
-        //agora não sei eles querem que as rodas tambêm rodem a evidenciar essa cena)
-        tankPos[0] += 0.05 * Math.sin(-radians(0.5));
-        tankPos[2] -= 0.05 * Math.cos(radians(0.5));
-        // tankPos[0] += 0.05; estes é caso não seja precisa
-        // tankPos[2] -= 0.05; que o tanque ande na direção que o canhão está apontado
+
+        tankPos[0] += 0.05 * Math.sin(-radians(cabinAngle));
+        tankPos[2] -= 0.05 * Math.cos(radians(cabinAngle));
+
+         if (sceneNode){
+          sceneNode.translation = [...tankPos]; 
+          }
+
         tireRotation -= 5;
+
+        leftWheelNames.forEach(wheelName => {
+            let wheel = nodeMap.get(wheelName);
+            if (wheel) {
+                wheel.rotation = [0, 360 * tireRotation/ 180, 0];
+            }
+        });
+
+        rightWheelNames.forEach(wheelName => {
+            let wheel = nodeMap.get(wheelName);
+            if (wheel) {
+                wheel.rotation = [0, 360 * tireRotation/ 180, 0];
+            }
+        });
         break;
+
+        
 
       case 'w':
       case 'W':
@@ -248,12 +294,19 @@ function setup(shaders) {
       case 'A':
         //rotate cabin counter clockwise
         cabinAngle += 5;
+
+        if(cabinNode){
+          cabinNode.rotation = [0, cabinAngle, 0];
+        }
         break;
 
       case 'd':
       case 'D':
         //rotate cabin clockwise
         cabinAngle -= 5;
+        if(cabinNode){
+          cabinNode.rotation = [0, cabinAngle, 0];
+        }
         break;
 
 
@@ -486,6 +539,11 @@ function setup(shaders) {
       gl.viewport(0, 0, canvas.width, canvas.height);
       floor(floorSize, tileSize, tileHeight);
       drawNode(gl, program, graphScene, mode);
+      const droneOrbit = nodeMap.get("drone");
+      if(droneOrbit){
+        droneOrbit.rotation = [0, 360*time/180, 0];
+      }
+
 
 
     
