@@ -32,7 +32,7 @@ let nodeMap = new Map();
 let multiView = false;
 let isOblique = false;
 let isPerspective = false;
-
+let isAxometric = false;
 //floor constants
 const floorSize = 20;
 const tileSize = 0.25;
@@ -77,13 +77,18 @@ function setup(shaders) {
     }
   }
 
-  // renders the oblique view
-  function toggleOblique(baseOrtho) {
-    if (isOblique) {
-      togglePerspective(baseOrtho);
-      const oblique = obliqueMatrix(theta, gamma);
-      mProjection = mult(oblique, baseOrtho);
-    }
+  // renders the axometric view
+  function toggleAxometric() {
+    const isoDistance = 2.0;
+    const angle = Math.PI / 4; // 45°
+    const heightAngle = Math.atan(Math.tan(radians(35.26))); // 35.26° elevation
+    const eye = [
+      isoDistance * Math.cos(angle),
+      isoDistance * Math.sin(heightAngle),
+      isoDistance * Math.sin(angle)
+    ];
+
+    mView = lookAt(eye, [0, 0.6, 0], [0, 1, 0]);
   }
 
 
@@ -138,7 +143,7 @@ function setup(shaders) {
   //
   //case 'arrow keys':
   // adjust axonometric/oblique parameters
-  /*
+
   window.addEventListener("keydown", (event) => {
     switch (event.key) {
       case "ArrowUp":
@@ -175,7 +180,7 @@ function setup(shaders) {
         event.preventDefault();
         break;
     }
-  });*/
+  });
 
 
   document.onkeydown = function (event) {
@@ -190,36 +195,28 @@ function setup(shaders) {
     switch (event.key) {
       case '1':
         // Front view
+        isAxometric = false;
         mView = fView;
         break;
 
       case '2':
         // Right view
+        isAxometric = false;
         mView = sView;
         break;
 
       case '3':
         // Top view
+        isAxometric = false;
         mView = tView;
         break;
 
       case '4': //case '8' alters the type of view in this case
         // Axometric view
-        if (isOblique) {
-          mView = oView;
+        if (isAxometric == false) {
+          isAxometric = !isAxometric;
         }
-        else {
-          const isoDistance = 2.0;
-          const angle = Math.PI / 4; // 45°
-          const heightAngle = Math.atan(Math.tan(radians(35.26))); // 35.26° elevation
-          const eye = [
-            isoDistance * Math.cos(angle),
-            isoDistance * Math.sin(heightAngle),
-            isoDistance * Math.sin(angle)
-          ];
-
-          mView = lookAt(eye, [0, 0.6, 0], [0, 1, 0]);
-        }
+        toggleAxometric();
         break;
 
       case '0':
@@ -229,15 +226,17 @@ function setup(shaders) {
 
       case '8':
         //toggle between axonometric view and oblique view when view 4
-        isOblique = !isOblique;
+        if (isAxometric == true && !isPerspective) {
+          isOblique = !isOblique;
 
-        /* if (isOblique) {
-           // use same eye position as axonometric but from slightly different direction
-           const eye = [1.5, 1.2, 1.0];
-           mView = lookAt(eye, [0, 0.6, 0], [0, 1, 0]);
-         } else {
-           mView = oView; // back to normal axonometric
-         }*/
+          if (isOblique) {
+            // use same eye position as axonometric but from slightly different direction
+            const eye = [1.5, 1.2, 1.0];
+            mView = lookAt(eye, [0, 0.6, 0], [0, 1, 0]);
+          } else {
+            toggleAxometric(mView);
+          }
+        }
         break;
 
       case '9':
@@ -555,8 +554,18 @@ function setup(shaders) {
     if (!multiView) {
       mProjection = baseOrtho; //original view
 
-      toggleOblique(baseOrtho);
-      togglePerspective(baseOrtho);
+      if (isOblique) {
+        const oblique = obliqueMatrix(theta, gamma);
+        mProjection = mult(baseOrtho, oblique);   // oblique = shear * ortho
+      } if (isPerspective && !isOblique) {
+        const fov = 60; // field of view in degrees
+        const near = 0.1;
+        const far = 20.0;
+        mProjection = perspective(fov, aspect, near, far);
+      } else {
+        mProjection = baseOrtho;
+      }
+
 
       uploadProjection(mProjection);
       loadMatrix(mView);
