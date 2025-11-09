@@ -22,6 +22,7 @@ let cabinAngle = 0;
 let cannonAngle = 0;
 const drone_orbit = 3; 
 let tireRotation = 0;
+const projectile_power = 5;
 
 const graphScene = scene[0];
 
@@ -68,8 +69,33 @@ function setup(shaders) {
     return deg * Math.PI / 180.0;
   }
 
+  function getWorldPosition(node) {
+  if (!node) return [0, 0, 0];
 
+  // Gather transforms from root → node
+  const chain = [];
+  let current = node;
+  while (current) {
+    chain.unshift(current);
+    current = current.parent;
+  }
 
+  // Build transform matrix
+  let M = mat4();
+  for (const n of chain) {
+    if (n.translation) M = mult(M, translate(...n.translation));
+    if (n.rotation) {
+      M = mult(M, rotateX(n.rotation[0]));
+      M = mult(M, rotateY(n.rotation[1]));
+      M = mult(M, rotateZ(n.rotation[2]));
+    }
+    if (n.scale) M = mult(M, scalem(...n.scale));
+  }
+
+  // Apply to origin
+  const p = mult(M, vec4(0, 0, 0, 1));
+  return [p[0], p[1], p[2]];
+}
 
   canvas.addEventListener("wheel", (event) => {
     event.preventDefault();
@@ -309,54 +335,33 @@ function setup(shaders) {
       //do código que faz cenas aqui é procurar nas linhas: 533 a 542, 603 a 611 
       case 'z':
       case 'Z':
-        const cannonLength = 0.7;
 
-        // Start from tank position
-        let worldX = tankPos[0];
-        let worldY = tankPos[1];
-        let worldZ = tankPos[2];
+        let pos = [0,0,0];
+        const dirX = Math.sin(radians(-cabinAngle)) * Math.cos(radians(cannonAngle));
+        const dirY = -Math.sin(radians(cannonAngle));
+        const dirZ = Math.cos(radians(cabinAngle)) * Math.cos(radians(cannonAngle));
+    
+        const cannonTipNode = nodeMap.get("cannonTip");
+        const tomatoContainer = nodeMap.get("tomatoes");
 
-        // Apply cabin rotation (around Y-axis)
-        const cabinRad = radians(cabinAngle);
+        if (cannonTipNode && tomatoContainer) {
+            pos = getWorldPosition(cannonTipNode);
+            tomatoContainer.translation= [...pos];
+            const newTomato = {
+              translation: [...pos],
+              vel:[0.2 * dirX, 0.2 *dirY, 0.2*dirZ],
+              scale: [1, 1, 1],
+              color: [1.0, 0.0, 0.0, 1.0],
+              time: 0,
+              primitive: SPHERE
+          };
 
-        // Cannon base offset from tank center (adjust these to match your tankCannon function)
-        const cannonBaseX = 0.0;
-        const cannonBaseY = 0.5;  // Height of cannon base
-        const cannonBaseZ = 0.2;  // Forward offset
-
-        // Rotate cannon base by cabin angle
-        const rotatedBaseX = cannonBaseZ * Math.sin(-cabinRad);
-        const rotatedBaseZ = cannonBaseZ * Math.cos(cabinRad);
-
-        worldX += rotatedBaseX;
-        worldY += cannonBaseY;
-        worldZ += rotatedBaseZ;
-
-        // Apply cannon elevation (around X-axis)
-        const cannonRad = radians(cannonAngle);
-        const tipOffsetZ = cannonLength * Math.cos(cannonRad);
-        const tipOffsetY = cannonLength * Math.sin(cannonRad);
-
-        // Rotate cannon tip by cabin angle again
-        const rotatedTipX = tipOffsetZ * Math.sin(-cabinRad);
-        const rotatedTipZ = tipOffsetZ * Math.cos(cabinRad);
-
-
-
-        const finalX = worldX + rotatedTipX;
-        const finalY = worldY - tipOffsetY;  // Negative because cannon points "down" when elevated
-        const finalZ = worldZ + rotatedTipZ;
-
-        // Direction vector
-        const dirX = Math.sin(-cabinRad) * Math.cos(cannonRad);
-        const dirY = -Math.sin(cannonRad);
-        const dirZ = Math.cos(cabinRad) * Math.cos(cannonRad);
-
-        projectiles.push({
-          pos: [finalX, finalY, finalZ],
-          vel: [dirX * 0.2, dirY * 0.2, dirZ * 0.2],
-          time: 0
-        });
+          // attach to scene graph
+          tomatoContainer.children.push(newTomato);
+          console.log("addded toamto")
+          buildNodeMap(newTomato, tomatoContainer);        
+        }
+       
         break;
 
       case ' ':
@@ -377,10 +382,12 @@ function setup(shaders) {
   PYRAMID.init(gl);
 
 
-  function buildNodeMap(node) {
+  function buildNodeMap(node, parent = null) {
     node.parent = parent;
     nodeMap.set(node.name, node);
-      if (node.children) node.children.forEach(buildNodeMap);
+      if (node.children) {
+        node.children.forEach(c => buildNodeMap(c, node));
+      }
   }
 
   buildNodeMap(graphScene);
@@ -391,16 +398,16 @@ function setup(shaders) {
     // apply transformations in fixed order
     if (node.translation) multTranslation(node.translation);
     if (node.rotation) {
+        multRotationZ(node.rotation[2]);  // Z first
+        multRotationY(node.rotation[1]);  // Y second  
         multRotationX(node.rotation[0]);
-        multRotationY(node.rotation[1]);
-        multRotationZ(node.rotation[2]);
-    }
+      }  // X l
     if (node.scale) multScale(node.scale);
 
     // draw if leaf
     if (node.primitive) {
         const uColor = gl.getUniformLocation(program, "u_color");
-        gl.uniform4fv(uColor, node.color || [1, 1, 1, 1]);
+        gl.uniform4fv(uColor, node.color);
         uploadModelView();
         node.primitive.draw(gl, program, mode);
          if(node.lines){
@@ -483,18 +490,28 @@ function setup(shaders) {
     }
   }
 
+  function  spinDrone(){
+    const droneOrbit = nodeMap.get("drone");
+    if(droneOrbit){
+      droneOrbit.rotation = [0, 360*time/(drone_orbit *180), 0];
+    }
+  }
+
 
   function tomatoes() {
-    //render projectiles
-    for (let p of projectiles) {
-      pushMatrix();
-      multTranslation(p.pos);
-      multScale([0.05, 0.05, 0.05]); // small sphere
-      const uColor = gl.getUniformLocation(program, "u_color");
-      gl.uniform4fv(uColor, [1.0, 0.0, 0.0, 1.0]); // red projectile
-      uploadModelView();
-      SPHERE.draw(gl, program, mode);
-      popMatrix();
+
+    const tomatoContainer = nodeMap.get("tomatoes");
+
+    if(tomatoContainer.children){
+      
+      for(const t of tomatoContainer.children){
+        t.translation[0] += projectile_power * t.vel[0];
+        t.translation[1] += projectile_power * t.vel[1];
+        t.translation[2] += projectile_power * t.vel[2];
+        // Add gravity
+        t.vel[1] -= 0.01; // g
+    
+      } 
     }
   }
 
@@ -511,17 +528,7 @@ function setup(shaders) {
     const range = isOblique ? 3.0 : 2.0;
     const baseOrtho = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
 
-    for (let p of projectiles) {
-      p.time += 0.016; // roughly 60fps
-      p.pos[0] += p.vel[0];
-      p.pos[1] += p.vel[1];
-      p.pos[2] += p.vel[2];
-      // Add gravity
-      p.vel[1] -= 0.01; // gravity effect
-    }
-    // Remove projectiles that hit the ground or go too far
-    projectiles = projectiles.filter(p => p.pos[1] > 0 && Math.abs(p.pos[0]) < 50 && Math.abs(p.pos[2]) < 50);
-
+  
     if (!multiView) {
       mProjection = baseOrtho; //original view
 
@@ -545,15 +552,12 @@ function setup(shaders) {
       loadMatrix(mView);
       gl.viewport(0, 0, canvas.width, canvas.height);
       floor(floorSize, tileSize, tileHeight);
+      spinDrone();
+      tomatoes();
       drawNode(gl, program, graphScene, mode);
-      const droneOrbit = nodeMap.get("drone");
-      if(droneOrbit){ 
-        droneOrbit.rotation = [0, 360*time/(drone_orbit *180), 0];
-      }
 
 
 
-    
     }
     else { //when multiview is true
 
@@ -567,14 +571,10 @@ function setup(shaders) {
         uploadProjection(mProjection);
         loadMatrix(viewMatrix);
         floor(floorSize, tileSize, tileHeight);
+        spinDrone();
+        tomatoes();
         drawNode(gl, program, graphScene, mode);
-        const droneOrbit = nodeMap.get("drone");
-        if(droneOrbit){
-          droneOrbit.rotation = [0, 360*time/(drone_orbit *180), 0];
-        }
 
-        
-        // desenhar os nos recursivamente
       }
 
       // Define the 4 camera views:
@@ -598,7 +598,7 @@ function setup(shaders) {
       }
     }
 
-    tomatoes();
+   
   }
 }
 

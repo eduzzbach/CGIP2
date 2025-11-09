@@ -403,12 +403,10 @@ var scene = [
         }]
       },
 
-      {
+      {//placeholder
         "name": "tomatoes",
-        "translation": [0,0,0],
-        "scale": [0.1, 0.1, 0.1],
-        "primitive": SPHERE,
-        "color": [1,0,0,1]
+        "scale": [0.1, 0.02, 0.1],
+        "children": []
       }
     ]
   }

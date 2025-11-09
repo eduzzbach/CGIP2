@@ -163,3 +163,84 @@ function drone_body(uColor) {
       }
     }
 
+
+    const cannonLength = 0.7;
+
+        // Start from tank position
+        let worldX = tankPos[0];
+        let worldY = tankPos[1];
+        let worldZ = tankPos[2];
+
+        // Apply cabin rotation (around Y-axis)
+        const cabinRad = radians(cabinAngle);
+
+        // Cannon base offset from tank center (adjust these to match your tankCannon function)
+        const cannonBaseX = 0.0;
+        const cannonBaseY = 0.5;  // Height of cannon base
+        const cannonBaseZ = 0.2;  // Forward offset
+
+        // Rotate cannon base by cabin angle
+        const rotatedBaseX = cannonBaseZ * Math.sin(-cabinRad);
+        const rotatedBaseZ = cannonBaseZ * Math.cos(cabinRad);
+
+        worldX += rotatedBaseX;
+        worldY += cannonBaseY;
+        worldZ += rotatedBaseZ;
+
+        // Apply cannon elevation (around X-axis)
+        const cannonRad = radians(cannonAngle);
+        const tipOffsetZ = cannonLength * Math.cos(cannonRad);
+        const tipOffsetY = cannonLength * Math.sin(cannonRad);
+
+        // Rotate cannon tip by cabin angle again
+        const rotatedTipX = tipOffsetZ * Math.sin(-cabinRad);
+        const rotatedTipZ = tipOffsetZ * Math.cos(cabinRad);
+
+
+
+        const finalX = worldX + rotatedTipX;
+        const finalY = worldY - tipOffsetY;  // Negative because cannon points "down" when elevated
+        const finalZ = worldZ + rotatedTipZ;
+
+        // Direction vector
+        const dirX = Math.sin(-cabinRad) * Math.cos(cannonRad);
+        const dirY = -Math.sin(cannonRad);
+        const dirZ = Math.cos(cabinRad) * Math.cos(cannonRad);
+
+        projectiles.push({
+          pos: [finalX, finalY, finalZ],
+          vel: [dirX * 0.2, dirY * 0.2, dirZ * 0.2],
+          time: 0
+        });
+        break;
+
+        for (let p of projectiles) {
+      p.time += 0.016; // roughly 60fps
+      p.pos[0] += p.vel[0];
+      p.pos[1] += p.vel[1];
+      p.pos[2] += p.vel[2];
+      // Add gravity
+      p.vel[1] -= 0.01; // gravity effect
+    }
+    // Remove projectiles that hit the ground or go too far
+    projectiles = projectiles.filter(p => p.pos[1] > 0 && Math.abs(p.pos[0]) < 50 && Math.abs(p.pos[2]) < 50);
+
+
+
+     projectiles.push({
+          pos: [finalX, finalY, finalZ],
+          vel: [dirX * 0.2, dirY * 0.2, dirZ * 0.2],
+          time: 0
+        });
+
+          for (let p of projectiles) {
+              p.time += 0.016; // roughly 60fps
+              p.pos[0] += p.vel[0];
+              p.pos[1] += p.vel[1];
+              p.pos[2] += p.vel[2];
+              // Add gravity
+              p.vel[1] -= 0.01; // gravity effect
+            }
+            // Remove projectiles that hit the ground or go too far
+            projectiles = projectiles.filter(p => p.pos[1] > 0 && Math.abs(p.pos[0]) < 50 && Math.abs(p.pos[2]) < 50);
+        
