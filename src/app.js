@@ -32,7 +32,7 @@ let nodeMap = new Map();
 let multiView = false;
 let isOblique = false;
 let isPerspective = false;
-let isAxometric = false;
+
 //floor constants
 const floorSize = 20;
 const tileSize = 0.25;
@@ -195,27 +195,25 @@ function setup(shaders) {
     switch (event.key) {
       case '1':
         // Front view
-        isAxometric = false;
+
         mView = fView;
         break;
 
       case '2':
         // Right view
-        isAxometric = false;
+
         mView = sView;
         break;
 
       case '3':
         // Top view
-        isAxometric = false;
+
         mView = tView;
         break;
 
       case '4': //case '8' alters the type of view in this case
         // Axometric view
-        if (isAxometric == false) {
-          isAxometric = !isAxometric;
-        }
+
         toggleAxometric();
         break;
 
@@ -226,22 +224,24 @@ function setup(shaders) {
 
       case '8':
         //toggle between axonometric view and oblique view when view 4
-        if (isAxometric == true && !isPerspective) {
+        if (!isPerspective)
           isOblique = !isOblique;
 
-          if (isOblique) {
-            // use same eye position as axonometric but from slightly different direction
-            const eye = [1.5, 1.2, 1.0];
-            mView = lookAt(eye, [0, 0.6, 0], [0, 1, 0]);
-          } else {
-            toggleAxometric(mView);
-          }
+        if (isOblique) {
+          // use same eye position as axonometric but from slightly different direction
+          const eye = [1.5, 1.2, 1.0];
+          mView = lookAt(eye, [0, 0.6, 0], [0, 1, 0]);
+        } else {
+          toggleAxometric(mView);
         }
+
+
         break;
 
       case '9':
         // toggle between parallel vs perspective views
-        isPerspective = !isPerspective;
+        if (!isOblique)
+          isPerspective = !isPerspective;
         break;
 
       case 'r':
@@ -555,18 +555,19 @@ function setup(shaders) {
     if (!multiView) {
       mProjection = baseOrtho; //original view
 
-      if (isOblique) {
+
+      if (!isOblique && !isPerspective) {
+        mProjection = baseOrtho;
+      }
+      else if (isOblique) {
         const oblique = obliqueMatrix(theta, gamma);
-        mProjection = mult(baseOrtho, oblique);   // oblique = shear * ortho
-      } if (isPerspective && !isOblique) {
-        const fov = 60; // field of view in degrees
+        mProjection = mult(baseOrtho, oblique);
+      } if (isPerspective) {
+        const fov = 60;
         const near = 0.1;
         const far = 20.0;
         mProjection = perspective(fov, aspect, near, far);
-      } else {
-        mProjection = baseOrtho;
       }
-
 
       uploadProjection(mProjection);
       loadMatrix(mView);
