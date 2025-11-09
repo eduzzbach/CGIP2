@@ -364,10 +364,12 @@ function setup(shaders) {
         const dirY = -Math.sin(radians(cannonAngle));
         const dirZ = Math.cos(radians(cabinAngle)) * Math.cos(radians(cannonAngle));
 
-        const cannonTipNode = nodeMap.get("cannonTip");
+        const cannonTipNode = nodeMap.get("cannonJoint");
         const tomatoContainer = nodeMap.get("tomatoes");
+        
 
         if (cannonTipNode && tomatoContainer) {
+
           pos = getWorldPosition(cannonTipNode);
           tomatoContainer.translation = [pos[0], pos[1], pos[2] + 0.4];
           const newTomato = {

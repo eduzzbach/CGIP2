@@ -58,43 +58,41 @@ var scene = [
       "scale": [0.8, 0.1, 1.0],
       "primitive": CUBE,
       "color": colorDgreen,
-    },
-
-    {
-        "name": "base2",
-        "lines": true,
-        "translation": [0, 0.2, 0],
-        "scale": [1.0, 0.15, 1.2],
-        "primitive": CUBE,
-        "color": colorYgreen,
-        "children": [
-          {
-          "name": "base2PL",
-          "lines":true,
-          "translation": [0, 0,0.55],
-          "rotation": [90, 0, 0],
-          "scale": [1, 0.1, 1],
-          "primitive": PYRAMID,
-          "color": colorYgreen
-        },
+      "children": [
         {
-          "name": "base2PR",
-          "lines":true,
-          "translation": [0, 0,-0.55],
-          "rotation": [-90, 0, 0],
-          "scale": [1, 0.1, 1],
-          "primitive": PYRAMID,
-          "color": colorYgreen
+          "name": "base2",
+          "lines": true,
+          "translation": [0, 1, 0],
+          "scale": [1.0, 1.2, 1.2],
+          "primitive": CUBE,
+          "color": colorYgreen,
+          "children": [
+            {
+            "name": "base2PL",
+            "lines":true,
+            "translation": [0, 0,0.55],
+            "rotation": [90, 0, 0],
+            "scale": [1, 0.1, 1],
+            "primitive": PYRAMID,
+            "color": colorYgreen
+          },
+          {
+            "name": "base2PR",
+            "lines":true,
+            "translation": [0, 0,-0.55],
+            "rotation": [-90, 0, 0],
+            "scale": [1, 0.1, 1],
+            "primitive": PYRAMID,
+            "color": colorYgreen
 
-        }]
-    },
+        },
 
-    {
+        {
         "name": "base3",
         "lines": true,
-        "translation": [0, .353, 0],
+        "translation": [0, 1, 0],
         "rotation": [0, 180, 0],
-        "scale": [1, 0.15, 0.9],
+        "scale": [1, 1, 0.9],                                      
         "primitive": CUBE,
         "color": colorLgreen,
         "children": [
@@ -128,7 +126,7 @@ var scene = [
                                 "color": colorYgreen,
                                 "children": [
                                   {
-                                    "name": "cannonTip",
+                                    "name": "cannonJoint",
                                     "lines": true,
                                     "translation": [0, 0, 0],
                                     "scale": [2.3, 0.01 ,2.3],
@@ -146,7 +144,7 @@ var scene = [
                   "color": colorYgreen,
                   "primitive": CYLINDER, 
                   "children": [
-                    {
+                    {                                           
                       "name": "entrance2",
                       "lines": true,
                       "translation": [0, 1.5, 0],
@@ -175,7 +173,12 @@ var scene = [
                 "primitive": PYRAMID,
                 "color": colorLgreen
               }]
-          },
+          }
+        ]
+    }
+
+      ]
+    },
         {
       
           "name": "drone",
@@ -285,7 +288,7 @@ var scene = [
         }]
       },
     
-     {
+      {
       "name": "wheels",
       "children": [
         {
