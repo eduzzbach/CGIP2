@@ -84,34 +84,31 @@ var scene = [
           {
             "name": "cabin",
             "translation": [0, .7, 0],
-            "rotation": [0, 0, 0],
+            "rotation": [0, 90, 0],
             "scale": [0.5, 1.5 , 0.5],
             "primitive": SPHERE,
             "color": colorDgreen,
             "children": [
               {
-                "name": "cabinT",
-                "translation": [-0.45, 0, 0],
-                "children": [
-                  {
                     "name": "cannon",
-                    "rotation": [0, 0, 0],  
-                    "translation": [-0.05, 0, 0], 
+                    "rotation":[0, 0, 0],
                     "children": [
-                      {
-                        "name": "cannonJoint",
-                        "scale": [0.15, 0.1, 0.15],
-                        "primitive": SPHERE,
-                        "color": colorYgreen
-                      },
-                      {
-                        "name": "cannonBarrel",
-                        "rotation": [0, 0, -90],  
-                        "scale": [0.07, 1, 0.05],
-                        "primitive": CYLINDER,
-                        "color": colorYgreen
+                        
+                        {
+                          "name": "cannonPivot",
+                          "translation": [0, 0, -.3], 
+                          "rotation": [0, 0, 0],
+                          "children": [
+                              {
+                                "name": "cannonBarrel",
+                                "translation": [0, 0, 0],  
+                                "rotation": [90, 0, 0],  
+                                "scale": [.05, 1.4 , .05],  
+
+                                "primitive": CYLINDER,  
+                                "color": colorYgreen
                         }]
-                    }]
+                        }]
                 }]
             }]
         }]
@@ -253,13 +250,13 @@ var scene = [
           {
             "name": "droneBody",
             "primitive": SPHERE, 
-            "rotation": [0, cabinAngle, 0],
+            "rotation": [0, 0, 0],
             "color": colorGwhite,
             "children": [
               {
                 "name": "droneCannonR",
                 "translation": [0, 0, .3],
-                "rotation": [cabinAngle, 0, 0],
+                "rotation": [0, 0, 0],
                 "children": [
                   {
                     "name": "droneCannon",
@@ -270,7 +267,7 @@ var scene = [
                     
                 }]
               },
-            {
+              {
                   "name": "rotorsU",
                   "children": [
                   {

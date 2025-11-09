@@ -16,7 +16,7 @@ let projectiles = [];
 let time = 0;
    
 let tankPos = [0, 0, 0];
-let cabinAngle = 0;
+let cabinAngle = 90;
 let cannonAngle = 0;
 const drone_orbit = 5; 
 let tireRotation = 0;
@@ -148,6 +148,7 @@ function setup(shaders) {
 
     const sceneNode = nodeMap.get("scene");
     const cabinNode = nodeMap.get("cabin");
+    const cannonNode = nodeMap.get("cannon");
     const leftWheelNames = ['lWheel1', 'lWheel2', 'lWheel3', 'lWheel4', 'lWheel5', 'lWheel6'];
     const rightWheelNames = ['rWheel1', 'rWheel2', 'rWheel3', 'rWheel4', 'rWheel5', 'rWheel6'];
     console.log("Key pressed:", event.key);
@@ -279,15 +280,25 @@ function setup(shaders) {
       case 'w':
       case 'W':
         //raise cannon
-        if (cannonAngle > -75)
-          cannonAngle -= 5;
+        if (cannonAngle < 180)
+          cannonAngle += 5;
+
+        if(cannonNode){
+          cannonNode.rotation = [cannonAngle, 0, 0];
+        }
+
+
         break;
 
       case 's':
       case 'S':
         //lower cannon
-        if (cannonAngle < 10)
-          cannonAngle += 5;
+        if (cannonAngle > 0)
+          cannonAngle -= 5;
+        if(cannonNode){
+          cannonNode.rotation = [cannonAngle, 0, 0];
+        }
+
         break;
 
       case 'a':
@@ -561,6 +572,10 @@ function setup(shaders) {
         loadMatrix(viewMatrix);
         floor(floorSize, tileSize, tileHeight);
         drawNode(gl, program, graphScene, mode);
+        const droneOrbit = nodeMap.get("drone");
+        if(droneOrbit){
+          droneOrbit.rotation = [0, 360*time/180, 0];
+        }
 
         
         // desenhar os nos recursivamente
