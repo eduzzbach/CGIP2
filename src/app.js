@@ -19,7 +19,7 @@ let time = 0;
    
 let tankPos = [0, 0, 0];
 let cabinAngle = 0;
-let cannonAngle = 0;
+let cannonAngle = 90;
 const drone_orbit = 3; 
 let tireRotation = 0;
 const projectile_power = 5;
@@ -159,7 +159,7 @@ function setup(shaders) {
 
     const sceneNode = nodeMap.get("scene");
     const cabinNode = nodeMap.get("cabin");
-    const cannonNode = nodeMap.get("cannon");
+    const cannonNode = nodeMap.get("cannonBarrel");
     const cannonTipNode = nodeMap.get("cannonTipNode");
     const leftWheelNames = ['lWheel1', 'lWheel2', 'lWheel3', 'lWheel4', 'lWheel5', 'lWheel6'];
     const rightWheelNames = ['rWheel1', 'rWheel2', 'rWheel3', 'rWheel4', 'rWheel5', 'rWheel6'];
@@ -290,8 +290,8 @@ function setup(shaders) {
       case 'w':
       case 'W':
         //raise cannon
-        if (cannonAngle < 185)
-          cannonAngle += 5;
+        if (cannonAngle > 80)
+          cannonAngle -= 5;
 
         if(cannonNode){
           cannonNode.rotation = [cannonAngle, 0, 0];
@@ -303,8 +303,8 @@ function setup(shaders) {
       case 's':
       case 'S':
         //lower cannon
-        if (cannonAngle > -5)
-          cannonAngle -= 5;
+        if (cannonAngle < 130)
+          cannonAngle += 5;
         if(cannonNode){
           cannonNode.rotation = [cannonAngle, 0, 0];
         }
