@@ -69,13 +69,23 @@ var scene = [
         "color": colorYgreen,
         "children": [
           {
-          "name": "base2P",
+          "name": "base2PL",
           "lines":true,
           "translation": [0, 0,0.55],
           "rotation": [90, 0, 0],
           "scale": [1, 0.1, 1],
           "primitive": PYRAMID,
           "color": colorYgreen
+        },
+        {
+          "name": "base2PR",
+          "lines":true,
+          "translation": [0, 0,-0.55],
+          "rotation": [-90, 0, 0],
+          "scale": [1, 0.1, 1],
+          "primitive": PYRAMID,
+          "color": colorYgreen
+
         }]
     },
 
@@ -105,7 +115,7 @@ var scene = [
                         
                         {
                           "name": "cannonT",
-                          "translation": [0, 0, -.3], 
+                          "translation": [0, 0, -.5], 
                           "rotation": [0, 0, 0],
                           "children": [
                               {
@@ -119,12 +129,11 @@ var scene = [
                                 "children": [
                                   {
                                     "name": "cannonTip",
-                                    "translation": [0, -0.5, 0],
-                                    "scale": [1.7,0.05  ,1.2],
+                                    "lines": true,
+                                    "translation": [0, 0, 0],
+                                    "scale": [2.3, 0.01 ,2.3],
                                     "color": colorYgreen,
                                     "primitive": SPHERE
-
-
                                 }]
                         }]
                         }]
@@ -156,6 +165,15 @@ var scene = [
               "scale": [1, .1, 1],
               "primitive": PYRAMID,
               "color": colorLgreen
+              },
+              {
+                "name": "base3PL",
+                "lines":true,
+                "translation": [0, 0,0.55],
+                "rotation": [90, 0, 0],
+                "scale": [1, .1, 1],
+                "primitive": PYRAMID,
+                "color": colorLgreen
               }]
           }]
     },
