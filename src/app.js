@@ -180,7 +180,7 @@ function setup(shaders) {
 
   document.onkeydown = function (event) {
 
-    const sceneNode = nodeMap.get("scene");
+    const tankNode = nodeMap.get("tank");
     const cabinNode = nodeMap.get("cabin");
     const cannonNode = nodeMap.get("cannonBarrel");
     const cannonTipNode = nodeMap.get("cannonTipNode");
@@ -259,8 +259,8 @@ function setup(shaders) {
         tankPos[0] -= 0.05 * Math.sin(-radians(cabinAngle));
         tankPos[2] += 0.05 * Math.cos(radians(cabinAngle));
 
-        if (sceneNode) {
-          sceneNode.translation = [...tankPos];
+        if (tankNode) {
+          tankNode.translation = [...tankPos];
         }
 
 
@@ -288,8 +288,8 @@ function setup(shaders) {
         tankPos[0] += 0.05 * Math.sin(-radians(cabinAngle));
         tankPos[2] -= 0.05 * Math.cos(radians(cabinAngle));
 
-        if (sceneNode) {
-          sceneNode.translation = [...tankPos];
+        if (tankNode) {
+          tankNode.translation = [...tankPos];
         }
 
         tireRotation -= 5;
@@ -370,11 +370,10 @@ function setup(shaders) {
 
         if (cannonTipNode && tomatoContainer) {
           pos = getWorldPosition(cannonTipNode);
-          tomatoContainer.translation = [...pos];
+          tomatoContainer.translation = [pos[0], pos[1], pos[2] + 0.4];
           const newTomato = {
             translation: [...pos],
             vel: [0.2 * dirX, 0.2 * dirY, 0.2 * dirZ],
-            scale: [1, 1, 1],
             color: [1.0, 0.0, 0.0, 1.0],
             time: 0,
             primitive: SPHERE

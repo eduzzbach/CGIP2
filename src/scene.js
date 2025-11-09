@@ -175,10 +175,117 @@ var scene = [
                 "primitive": PYRAMID,
                 "color": colorLgreen
               }]
+          },
+        {
+      
+          "name": "drone",
+          "rotation": [0,0, 0],
+          "children": [
+            {
+              "name": "droneT",
+              "translation": [.5, 1.2, .5],
+              "rotation": [0, 0, 0],
+              "scale": [0.3, 0.3, 0.3],
+              "children": [
+                {
+                  "name": "droneBody",
+                  "primitive": SPHERE, 
+                  "rotation": [0, 0, 0],
+                  "color": colorGwhite,
+                  "children": [
+                    {
+                      "name": "droneCannonR",
+                      "translation": [0, 0, .3],
+                      "rotation": [0, 0, 0],
+                      "children": [
+                  {
+                    "name": "droneCannon",
+                    "lines": true,
+                    "rotation": [90, 0, 0],
+                    "scale": [0.2, 0.85, 0.2],
+                    "primitive": CYLINDER,
+                    "color": colorDblue,
+                    
+                }]
+              },
+              {
+                  "name": "rotorsU",
+                  "children": [
+                  {
+                    "name": "rotorU1",
+                    "lines": true,
+                    "translation": rotorUPositions[0],
+                    "scale": [0.35, 0.1, 0.35],
+                    "color": colorLblue,
+                    "primitive": CYLINDER
+                  },
+                  {
+                    "name": "rotorU2",
+                    "lines": true,
+                    "translation": rotorUPositions[1],
+                    "scale": [0.35, 0.1, 0.35],
+                    "color": colorLblue,
+                    "primitive": CYLINDER
+                  },
+                  {
+                    "name": "rotorU3",
+                    "lines": true,
+                    "translation": rotorUPositions[2],
+                    "scale": [0.35, 0.1, 0.35],
+                    "color": colorLblue,
+                    "primitive": CYLINDER
+                  },
+                  {
+                    "name": "rotorU4",
+                    "lines": true,
+                    "translation": rotorUPositions[3],
+                    "scale": [0.35, 0.1, 0.35],
+                    "color": colorLblue,
+                    "primitive": CYLINDER
+                  }]
+              },
+              
+              {
+                "name": "rotorsD",
+                "children": [
+                  {
+                    "name": "rotorD1",
+                    "lines": true,
+                    "translation": rotorDPositions[0],
+                    "scale": [0.35, 0.1, 0.35],
+                    "color": colorLblue,
+                    "primitive": CYLINDER
+                  },
+                  {
+                    "name": "rotorD2",
+                    "lines": true,
+                    "translation": rotorDPositions[1],
+                    "scale": [0.35, 0.1, 0.35],
+                    "color": colorLblue,
+                    "primitive": CYLINDER
+                  },
+                  {
+                    "name": "rotorD3",
+                    "lines": true,
+                    "translation": rotorDPositions[2],
+                    "scale": [0.35, 0.1, 0.35],
+                    "color": colorLblue,
+                    "primitive": CYLINDER
+                  },
+                  {
+                    "name": "rotorD4",
+                    "lines": true,
+                    "translation": rotorDPositions[3],
+                    "scale": [0.35, 0.1, 0.35],
+                    "color": colorLblue,
+                    "primitive": CYLINDER
+                  }]
+              }]
           }]
-    },
-
-    {
+        }]
+      },
+    
+     {
       "name": "wheels",
       "children": [
         {
@@ -310,120 +417,13 @@ var scene = [
       }]
     }
       ]
+    },]
     },
-    
-    {
-      
-    "name": "drone",
-    "rotation": [0,0, 0],
-    "children": [
-      {
-        "name": "droneT",
-        "translation": [.5, 1.2, .5],
-        "rotation": [0, 0, 0],
-        "scale": [0.3, 0.3, 0.3],
-        "children": [
-          {
-            "name": "droneBody",
-            "primitive": SPHERE, 
-            "rotation": [0, 0, 0],
-            "color": colorGwhite,
-            "children": [
-              {
-                "name": "droneCannonR",
-                "translation": [0, 0, .3],
-                "rotation": [0, 0, 0],
-                "children": [
-                  {
-                    "name": "droneCannon",
-                    "lines": true,
-                    "rotation": [90, 0, 0],
-                    "scale": [0.2, 0.85, 0.2],
-                    "primitive": CYLINDER,
-                    "color": colorDblue,
-                    
-                }]
-              },
-              {
-                  "name": "rotorsU",
-                  "children": [
-                  {
-                    "name": "rotorU1",
-                    "lines": true,
-                    "translation": rotorUPositions[0],
-                    "scale": [0.35, 0.1, 0.35],
-                    "color": colorLblue,
-                    "primitive": CYLINDER
-                  },
-                  {
-                    "name": "rotorU2",
-                    "lines": true,
-                    "translation": rotorUPositions[1],
-                    "scale": [0.35, 0.1, 0.35],
-                    "color": colorLblue,
-                    "primitive": CYLINDER
-                  },
-                  {
-                    "name": "rotorU3",
-                    "lines": true,
-                    "translation": rotorUPositions[2],
-                    "scale": [0.35, 0.1, 0.35],
-                    "color": colorLblue,
-                    "primitive": CYLINDER
-                  },
-                  {
-                    "name": "rotorU4",
-                    "lines": true,
-                    "translation": rotorUPositions[3],
-                    "scale": [0.35, 0.1, 0.35],
-                    "color": colorLblue,
-                    "primitive": CYLINDER
-                  }]
-              },
-              
-              {
-                "name": "rotorsD",
-                "children": [
-                  {
-                    "name": "rotorD1",
-                    "lines": true,
-                    "translation": rotorDPositions[0],
-                    "scale": [0.35, 0.1, 0.35],
-                    "color": colorLblue,
-                    "primitive": CYLINDER
-                  },
-                  {
-                    "name": "rotorD2",
-                    "lines": true,
-                    "translation": rotorDPositions[1],
-                    "scale": [0.35, 0.1, 0.35],
-                    "color": colorLblue,
-                    "primitive": CYLINDER
-                  },
-                  {
-                    "name": "rotorD3",
-                    "lines": true,
-                    "translation": rotorDPositions[2],
-                    "scale": [0.35, 0.1, 0.35],
-                    "color": colorLblue,
-                    "primitive": CYLINDER
-                  },
-                  {
-                    "name": "rotorD4",
-                    "lines": true,
-                    "translation": rotorDPositions[3],
-                    "scale": [0.35, 0.1, 0.35],
-                    "color": colorLblue,
-                    "primitive": CYLINDER
-                  }]
-              }]
-          }]
-        }]
-      },
-
       {//placeholder
         "name": "tomatoes",
-        "scale": [0.1, 0.02, 0.1],
+        "translation": [0, 0, 0],
+        "rotation":[-90, 0, 0],
+        "scale": [0.05, 0.05, 0.05],
         "children": []
       }
     ]
