@@ -1,11 +1,13 @@
 import { buildProgramFromSources, loadShadersFromURLS, setupWebGL } from "../../libs/utils.js";
-import { ortho, lookAt, flatten, mult, perspective } from "../../libs/MV.js";
+import { ortho, lookAt, flatten, mult, perspective, mat4, translate, rotateX, rotateY, rotateZ, scalem, vec4 } from "../../libs/MV.js";
 import { modelView, loadMatrix, multRotationX, multRotationY, multRotationZ, multScale, multTranslation, popMatrix, pushMatrix } from "../../libs/stack.js";
 import { scene } from './scene.js';
 
 import * as CUBE from '../../libs/objects/cube.js';
 import * as SPHERE from '../../libs/objects/sphere.js';
 import * as CYLINDER from '../../libs/objects/cylinder.js';
+import * as PYRAMID from '../../libs/objects/pyramid.js';
+
 
 let speed = 1 / 5.0;
 let animation = true;
@@ -16,24 +18,14 @@ let projectiles = [];
 let time = 0;
    
 let tankPos = [0, 0, 0];
-let cabinAngle = 90;
+let cabinAngle = 0;
 let cannonAngle = 0;
-const drone_orbit = 5; 
+const drone_orbit = 3; 
 let tireRotation = 0;
 
 const graphScene = scene[0];
 
 let nodeMap = new Map();
-
-  function buildNodeMap(node) {
-  nodeMap.set(node.name, node);
-  if (node.children) {
-    for (let child of node.children) {
-      buildNodeMap(child);
-    }
-  }
-  }
-
 
 //projection booleans
 let multiView = false;
@@ -44,13 +36,6 @@ let isPerspective = false;
 const floorSize = 20;
 const tileSize = 0.25;
 const tileHeight = 0.05;
-
-//tire constants
-const tireSize = 0.2;
-const tireHeight = 0.1;
-const tireColor = [0.0, 0.0, 0.0, 1.0];
-const tireSpacing = 0.2;
-const numTiresPerSide = 6;
 
 
 //types of views
@@ -149,6 +134,7 @@ function setup(shaders) {
     const sceneNode = nodeMap.get("scene");
     const cabinNode = nodeMap.get("cabin");
     const cannonNode = nodeMap.get("cannon");
+    const cannonTipNode = nodeMap.get("cannonTipNode");
     const leftWheelNames = ['lWheel1', 'lWheel2', 'lWheel3', 'lWheel4', 'lWheel5', 'lWheel6'];
     const rightWheelNames = ['rWheel1', 'rWheel2', 'rWheel3', 'rWheel4', 'rWheel5', 'rWheel6'];
     console.log("Key pressed:", event.key);
@@ -228,8 +214,6 @@ function setup(shaders) {
         }
 
      
-        //tankPos[0] -= 0.05; estes é caso não seja preciso
-        //tankPos[2] += 0.05; que o tanque ande na direção que o canhão está apontado
         tireRotation += 5;
 
         leftWheelNames.forEach(wheelName => {
@@ -280,7 +264,7 @@ function setup(shaders) {
       case 'w':
       case 'W':
         //raise cannon
-        if (cannonAngle < 180)
+        if (cannonAngle < 185)
           cannonAngle += 5;
 
         if(cannonNode){
@@ -293,7 +277,7 @@ function setup(shaders) {
       case 's':
       case 'S':
         //lower cannon
-        if (cannonAngle > 0)
+        if (cannonAngle > -5)
           cannonAngle -= 5;
         if(cannonNode){
           cannonNode.rotation = [cannonAngle, 0, 0];
@@ -357,6 +341,8 @@ function setup(shaders) {
         const rotatedTipX = tipOffsetZ * Math.sin(-cabinRad);
         const rotatedTipZ = tipOffsetZ * Math.cos(cabinRad);
 
+
+
         const finalX = worldX + rotatedTipX;
         const finalY = worldY - tipOffsetY;  // Negative because cannon points "down" when elevated
         const finalZ = worldZ + rotatedTipZ;
@@ -388,8 +374,11 @@ function setup(shaders) {
   CUBE.init(gl);
   CYLINDER.init(gl);
   SPHERE.init(gl);
+  PYRAMID.init(gl);
+
 
   function buildNodeMap(node) {
+    node.parent = parent;
     nodeMap.set(node.name, node);
       if (node.children) node.children.forEach(buildNodeMap);
   }
@@ -414,7 +403,14 @@ function setup(shaders) {
         gl.uniform4fv(uColor, node.color || [1, 1, 1, 1]);
         uploadModelView();
         node.primitive.draw(gl, program, mode);
+         if(node.lines){
+          gl.uniform4fv(uColor, [0, 0, 0, 1]); // Black lines
+          uploadModelView(); // Re-upload same matrix
+          node.primitive.draw(gl, program, gl.LINES);
+      }
+        
     }
+   
 
     // recurse
     if (node.children) for (const child of node.children)
@@ -551,8 +547,8 @@ function setup(shaders) {
       floor(floorSize, tileSize, tileHeight);
       drawNode(gl, program, graphScene, mode);
       const droneOrbit = nodeMap.get("drone");
-      if(droneOrbit){
-        droneOrbit.rotation = [0, 360*time/180, 0];
+      if(droneOrbit){ 
+        droneOrbit.rotation = [0, 360*time/(drone_orbit *180), 0];
       }
 
 
@@ -574,7 +570,7 @@ function setup(shaders) {
         drawNode(gl, program, graphScene, mode);
         const droneOrbit = nodeMap.get("drone");
         if(droneOrbit){
-          droneOrbit.rotation = [0, 360*time/180, 0];
+          droneOrbit.rotation = [0, 360*time/(drone_orbit *180), 0];
         }
 
         

@@ -4,6 +4,7 @@ export {scene};
 import * as CUBE from '../../libs/objects/cube.js';
 import * as SPHERE from '../../libs/objects/sphere.js';
 import * as CYLINDER from '../../libs/objects/cylinder.js';
+import * as PYRAMID from '../../libs/objects/pyramid.js';
 
 const numWheels = 6
 const wheelSpace = 1
@@ -26,24 +27,23 @@ const wheelSpace = 1
 
     
 let tankPos = [0, 0, 0];
-let cabinAngle = 0;
-let cannonAngle = 0;
-let time = 0.4;
-const drone_orbit = 5; 
-let tireRotation = 0;
 
 
-const colorDgreen = [0.1, 0.3, 0.1, 1.0];
-const colorLgreen = [0.1, 0.5, 0.1, 1.0];
+
+const colorDgreen = [0.2, 0.3, 0.1, 1.0];
+const colorLgreen = [0.3, 0.4, 0.1, 1.0];
 const colorYgreen = [0.3, 0.3, 0.1, 1.0];
 const colorGwhite = [0.0, 0.0, 0.0, 0.5];
 const colorLblue = [0.0, 0.3, 1.0, 0.5];
 const colorDblue = [0., 0., 0.7, 1.0];
+const colorDGray = [0.1, 0.1, 0.1, 1];
+
 
 
 var scene = [
   {
     "name": "scene",
+    "translation": [0,0,0],
     "children": [
       {
     "name": "tank",
@@ -53,6 +53,7 @@ var scene = [
     "children": [
     {
       "name": "base",
+      "lines": true,
       "translation": [0, 0.1, 0],
       "scale": [0.8, 0.1, 1.0],
       "primitive": CUBE,
@@ -60,58 +61,103 @@ var scene = [
     },
 
     {
-      "name": "base2",
+        "name": "base2",
+        "lines": true,
         "translation": [0, 0.2, 0],
         "scale": [1.0, 0.15, 1.2],
         "primitive": CUBE,
         "color": colorYgreen,
         "children": [
           {
-          "name": "base2T",
-          "translation": [0, 1.0, 0],
-
+          "name": "base2P",
+          "lines":true,
+          "translation": [0, 0,0.55],
+          "rotation": [90, 0, 0],
+          "scale": [1, 0.1, 1],
+          "primitive": PYRAMID,
+          "color": colorYgreen
         }]
     },
 
     {
         "name": "base3",
-        "translation": [0, .3, 0],
-        "rotation": [0, 90, 0],
-        "scale": [1.1, 0.2, 1.0],
-        "primitive": CYLINDER,
+        "lines": true,
+        "translation": [0, .353, 0],
+        "rotation": [0, 180, 0],
+        "scale": [1, 0.15, 0.9],
+        "primitive": CUBE,
         "color": colorLgreen,
         "children": [
           {
             "name": "cabin",
-            "translation": [0, .7, 0],
-            "rotation": [0, 90, 0],
-            "scale": [0.5, 1.5 , 0.5],
+            "lines": true,
+            "translation": [0, 1, 0],
+            "rotation": [0, 0, 0],
+            "scale": [0.5, 2.5 , 0.5],
             "primitive": SPHERE,
             "color": colorDgreen,
             "children": [
               {
                     "name": "cannon",
+                    "lines": true,
                     "rotation":[0, 0, 0],
                     "children": [
                         
                         {
-                          "name": "cannonPivot",
+                          "name": "cannonT",
                           "translation": [0, 0, -.3], 
                           "rotation": [0, 0, 0],
                           "children": [
                               {
                                 "name": "cannonBarrel",
+                                "lines": true,
                                 "translation": [0, 0, 0],  
                                 "rotation": [90, 0, 0],  
                                 "scale": [.05, 1.4 , .05],  
-
                                 "primitive": CYLINDER,  
-                                "color": colorYgreen
+                                "color": colorYgreen,
+                                "children": [
+                                  {
+                                    "name": "cannonTip",
+                                    "translation": [0, -0.5, 0],
+                                    "scale": [1.7,0.05  ,1.2],
+                                    "color": colorYgreen,
+                                    "primitive": SPHERE
+
+
+                                }]
                         }]
                         }]
+                },
+              
+                {
+                  "name": "entrance",
+                  "translation": [0, 0.5, 0],
+                  "scale": [0.2, 0.01, 0.2],
+                  "color": colorYgreen,
+                  "primitive": CYLINDER, 
+                  "children": [
+                    {
+                      "name": "entrance2",
+                      "lines": true,
+                      "translation": [0, 1.5, 0],
+                      "scale": [0.9, 0, 0.9],
+                      "color": colorDgreen,
+                      "primitive": CYLINDER
+                    }
+                  ]
                 }]
-            }]
-        }]
+            },
+            {
+              "name": "base3P",
+              "lines":true,
+              "translation": [0, 0,-0.55],
+              "rotation": [-90, 0, 0],
+              "scale": [1, .1, 1],
+              "primitive": PYRAMID,
+              "color": colorLgreen
+              }]
+          }]
     },
 
     {
@@ -125,47 +171,53 @@ var scene = [
       "children": [
         {
           "name": "lWheel1",
+          "lines": true,
           "translation": [0, 0, (1 - (numWheels - 1) / 2) * wheelSpace],
           "rotation": [0,0,0],
-          "color": [0, 0, 0, 1],
+          "color": colorDGray,
           "primitive": CYLINDER
 
       },
       {
         "name": "lWheel2",
+        "lines": true,
         "translation": [0, 0, (2 - (numWheels - 1) / 2) * wheelSpace],
         "rotation": [0,0,0],
-        "color": [0, 0, 0, 1],
+        "color": colorDGray,
         "primitive": CYLINDER
 
       },
       {
         "name": "lWheel3",
+        "lines": true,
         "translation": [0, 0, (3 - (numWheels - 1) / 2) * wheelSpace],
         "rotation": [0,0,0],
-        "color": [0, 0, 0, 1],
+        "color": colorDGray,
         "primitive": CYLINDER
 
       },
       {
         "name": "lWheel4",
+        "lines": true,
         "translation": [0, 0, (4 - (numWheels - 1) / 2) * wheelSpace],
         "rotation": [0,0,0],
-        "color": [0, 0, 0, 1],
+        "color": colorDGray,
         "primitive": CYLINDER
       },
       {
         "name": "lWheel5",
+        "lines": true,
         "translation": [0, 0, (5 - (numWheels - 1) / 2) * wheelSpace],
         "rotation": [0,0,0],
-        "color": [0, 0, 0, 1],
+        "color": colorDGray,
         "primitive": CYLINDER
       },
       {
         "name": "lWheel6",
+        "lines": true,
         "translation": [0, 0, (6 - (numWheels - 1) / 2) * wheelSpace],
         "rotation": [0,0,0],
-        "color": [0, 0, 0, 1],
+        "color": colorDGray,
         "primitive": CYLINDER
       }]
     },
@@ -178,27 +230,30 @@ var scene = [
       "children": [
         {
           "name": "rWheel1",
+          "lines": true,
           "translation": [0, 0, (1 - (numWheels - 1) / 2) * wheelSpace],
           "rotation": [0,0,0],
-          "color": [0, 0, 0, 1],
+          "color": colorDGray,
           "primitive": CYLINDER
 
       },
       {
         "name": "rWheel2",
+        "lines": true,
         "translation": [0, 0, (2 - (numWheels - 1) / 2) * wheelSpace],
         "rotation": [0,0,0],
         "rotation": [0,0,0],
-        "color": [0, 0, 0, 1],
+        "color": colorDGray,
         "primitive": CYLINDER
 
       },
       {
         "name": "rWheel3",
+        "lines": true,
         "translation": [0, 0, (3 - (numWheels - 1) / 2) * wheelSpace],
         "rotation": [0,0,0],
         "rotation": [0,0,0],
-        "color": [0, 0, 0, 1],
+        "color": colorDGray,
         "primitive": CYLINDER,
         "children": [
           {//PUT IN LINE MODE AND SEE WHEEL SPIN
@@ -213,23 +268,26 @@ var scene = [
       },
       {
         "name": "rWheel4",
+        "lines": true,
         "translation": [0, 0, (4 - (numWheels - 1) / 2) * wheelSpace],
         "rotation": [0,0,0],
-        "color": [0, 0, 0, 1],
+        "color": colorDGray,
         "primitive": CYLINDER
       },
       {
         "name": "rWheel5",
+        "lines": true,
         "translation": [0, 0, (5 - (numWheels - 1) / 2) * wheelSpace],
         "rotation": [0,0,0],
-        "color": [0, 0, 0, 1],
+        "color": colorDGray,
         "primitive": CYLINDER
       },
       {
         "name": "rWheel6",
+        "lines": true,
         "translation": [0, 0, (6 - (numWheels - 1) / 2) * wheelSpace],
         "rotation": [0,0,0],
-        "color": [0, 0, 0, 1],
+        "color": colorDGray,
         "primitive": CYLINDER
       }]
     }
@@ -260,6 +318,7 @@ var scene = [
                 "children": [
                   {
                     "name": "droneCannon",
+                    "lines": true,
                     "rotation": [90, 0, 0],
                     "scale": [0.2, 0.85, 0.2],
                     "primitive": CYLINDER,
@@ -272,6 +331,7 @@ var scene = [
                   "children": [
                   {
                     "name": "rotorU1",
+                    "lines": true,
                     "translation": rotorUPositions[0],
                     "scale": [0.35, 0.1, 0.35],
                     "color": colorLblue,
@@ -279,6 +339,7 @@ var scene = [
                   },
                   {
                     "name": "rotorU2",
+                    "lines": true,
                     "translation": rotorUPositions[1],
                     "scale": [0.35, 0.1, 0.35],
                     "color": colorLblue,
@@ -286,6 +347,7 @@ var scene = [
                   },
                   {
                     "name": "rotorU3",
+                    "lines": true,
                     "translation": rotorUPositions[2],
                     "scale": [0.35, 0.1, 0.35],
                     "color": colorLblue,
@@ -293,6 +355,7 @@ var scene = [
                   },
                   {
                     "name": "rotorU4",
+                    "lines": true,
                     "translation": rotorUPositions[3],
                     "scale": [0.35, 0.1, 0.35],
                     "color": colorLblue,
@@ -305,6 +368,7 @@ var scene = [
                 "children": [
                   {
                     "name": "rotorD1",
+                    "lines": true,
                     "translation": rotorDPositions[0],
                     "scale": [0.35, 0.1, 0.35],
                     "color": colorLblue,
@@ -312,6 +376,7 @@ var scene = [
                   },
                   {
                     "name": "rotorD2",
+                    "lines": true,
                     "translation": rotorDPositions[1],
                     "scale": [0.35, 0.1, 0.35],
                     "color": colorLblue,
@@ -319,6 +384,7 @@ var scene = [
                   },
                   {
                     "name": "rotorD3",
+                    "lines": true,
                     "translation": rotorDPositions[2],
                     "scale": [0.35, 0.1, 0.35],
                     "color": colorLblue,
@@ -326,6 +392,7 @@ var scene = [
                   },
                   {
                     "name": "rotorD4",
+                    "lines": true,
                     "translation": rotorDPositions[3],
                     "scale": [0.35, 0.1, 0.35],
                     "color": colorLblue,
@@ -334,6 +401,14 @@ var scene = [
               }]
           }]
         }]
+      },
+
+      {
+        "name": "tomatoes",
+        "translation": [0,0,0],
+        "scale": [0.1, 0.1, 0.1],
+        "primitive": SPHERE,
+        "color": [1,0,0,1]
       }
     ]
   }
