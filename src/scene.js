@@ -46,95 +46,92 @@ var scene = [
     "translation": [0,0,0],
     "children": [
       {
-    "name": "tank",
-    "translation": tankPos,
-    "rotation": [0, 0, 0],
-    "scale": [1, 1, 1],
-    "children": [
-    {
-      "name": "base",
-      "lines": true,
-      "translation": [0, 0.1, 0],
-      "scale": [0.8, 0.1, 1.0],
-      "primitive": CUBE,
-      "color": colorDgreen,
-      "children": [
-        {
-          "name": "base2",
-          "lines": true,
-          "translation": [0, 1, 0],
-          "scale": [1.0, 1.2, 1.2],
-          "primitive": CUBE,
-          "color": colorYgreen,
-          "children": [
-            {
-            "name": "base2PL",
-            "lines":true,
-            "translation": [0, 0,0.55],
-            "rotation": [90, 0, 0],
-            "scale": [1, 0.1, 1],
-            "primitive": PYRAMID,
-            "color": colorYgreen
-          },
-          {
-            "name": "base2PR",
-            "lines":true,
-            "translation": [0, 0,-0.55],
-            "rotation": [-90, 0, 0],
-            "scale": [1, 0.1, 1],
-            "primitive": PYRAMID,
-            "color": colorYgreen
-
-        },
-
-        {
-        "name": "base3",
-        "lines": true,
-        "translation": [0, 1, 0],
-        "rotation": [0, 180, 0],
-        "scale": [1, 1, 0.9],                                      
-        "primitive": CUBE,
-        "color": colorLgreen,
+        "name": "tank",
+        "translation": tankPos,
+        "rotation": [0, 0, 0],
+        "scale": [1, 1, 1],
         "children": [
           {
-            "name": "cabin",
+            "name": "base",
             "lines": true,
-            "translation": [0, 1, 0],
-            "rotation": [0, 0, 0],
-            "scale": [0.5, 2.5 , 0.5],
-            "primitive": SPHERE,
+            "translation": [0, 0.1, 0],
+            "scale": [0.8, 0.1, 1.0],
+            "primitive": CUBE,
             "color": colorDgreen,
             "children": [
               {
-                    "name": "cannon",
+                "name": "base2",
+                "lines": true,
+                "translation": [0, 1, 0],
+                "scale": [1.0, 1.2, 1.2],
+                "primitive": CUBE,
+                "color": colorYgreen,
+                "children": [
+                  {
+                    "name": "base2PL",
+                    "lines":true,
+                    "translation": [0, 0,0.55],
+                    "rotation": [90, 0, 0],
+                    "scale": [1, 0.1, 1],
+                    "primitive": PYRAMID,
+                    "color": colorYgreen
+                  },
+                  {
+                    "name": "base2PR",
+                    "lines":true,
+                    "translation": [0, 0,-0.55],
+                    "rotation": [-90, 0, 0],
+                    "scale": [1, 0.1, 1],
+                    "primitive": PYRAMID,
+                    "color": colorYgreen
+                  },
+                  {
+                    "name": "base3",
                     "lines": true,
-                    "rotation":[0, 0, 0],
+                    "translation": [0, 1, 0],
+                    "rotation": [0, 180, 0],
+                    "scale": [1, 1, 0.9],                                      
+                    "primitive": CUBE,
+                    "color": colorLgreen,
                     "children": [
-                        
-                        {
-                          "name": "cannonT",
-                          "translation": [0, 0, -.5], 
-                          "rotation": [0, 0, 0],
-                          "children": [
+                      {
+                        "name": "cabin",
+                        "lines": true,
+                        "translation": [0, 1, 0],
+                        "rotation": [0, 0, 0],
+                        "scale": [0.5, 2.5 , 0.5],
+                        "primitive": SPHERE,
+                        "color": colorDgreen,
+                        "children": [
+                          {
+                            "name": "cannon",
+                            "lines": true,
+                            "rotation":[0, 0, 0],
+                            "children": [    
                               {
-                                "name": "cannonBarrel",
-                                "lines": true,
-                                "translation": [0, 0, 0],  
-                                "rotation": [90, 0, 0],  
-                                "scale": [.05, 1.4 , .05],  
-                                "primitive": CYLINDER,  
-                                "color": colorYgreen,
+                                "name": "cannonT",
+                                "translation": [0, 0, -.5], 
+                                "rotation": [0, 0, 0],
                                 "children": [
                                   {
-                                    "name": "cannonJoint",
+                                    "name": "cannonBarrel",
                                     "lines": true,
-                                    "translation": [0, 0, 0],
-                                    "scale": [2.3, 0.01 ,2.3],
+                                    "translation": [0, 0, 0],  
+                                    "rotation": [90, 0, 0],  
+                                    "scale": [.05, 1.4 , .05],  
+                                    "primitive": CYLINDER,  
                                     "color": colorYgreen,
-                                    "primitive": SPHERE
-                                }]
-                        }]
-                        }]
+                                    "children": [
+                                      {
+                                        "name": "cannonJoint",
+                                        "lines": true,
+                                        "translation": [0, 0, 0],
+                                        "scale": [2.3, 0.01 ,2.3],
+                                        "color": colorYgreen,
+                                        "primitive": SPHERE
+                                      }] 
+                              }]
+                          }]
                 },
               
                 {
@@ -173,11 +170,8 @@ var scene = [
                 "primitive": PYRAMID,
                 "color": colorLgreen
               }]
-          }
-        ]
-    }
-
-      ]
+          }]
+      }]
     },
         {
       
@@ -289,146 +283,136 @@ var scene = [
       },
     
       {
-      "name": "wheels",
-      "children": [
-        {
-      "name": "lWheels",
-      "translation": [-0.53, 0.1 , -.2],
-      "rotation": [0,0,90],
-      "scale": [0.2, 0.05, 0.2],
-      "children": [
-        {
-          "name": "lWheel1",
-          "lines": true,
-          "translation": [0, 0, (1 - (numWheels - 1) / 2) * wheelSpace],
-          "rotation": [0,0,0],
-          "color": colorDGray,
-          "primitive": CYLINDER
-
-      },
-      {
-        "name": "lWheel2",
-        "lines": true,
-        "translation": [0, 0, (2 - (numWheels - 1) / 2) * wheelSpace],
-        "rotation": [0,0,0],
-        "color": colorDGray,
-        "primitive": CYLINDER
-
-      },
-      {
-        "name": "lWheel3",
-        "lines": true,
-        "translation": [0, 0, (3 - (numWheels - 1) / 2) * wheelSpace],
-        "rotation": [0,0,0],
-        "color": colorDGray,
-        "primitive": CYLINDER
-
-      },
-      {
-        "name": "lWheel4",
-        "lines": true,
-        "translation": [0, 0, (4 - (numWheels - 1) / 2) * wheelSpace],
-        "rotation": [0,0,0],
-        "color": colorDGray,
-        "primitive": CYLINDER
-      },
-      {
-        "name": "lWheel5",
-        "lines": true,
-        "translation": [0, 0, (5 - (numWheels - 1) / 2) * wheelSpace],
-        "rotation": [0,0,0],
-        "color": colorDGray,
-        "primitive": CYLINDER
-      },
-      {
-        "name": "lWheel6",
-        "lines": true,
-        "translation": [0, 0, (6 - (numWheels - 1) / 2) * wheelSpace],
-        "rotation": [0,0,0],
-        "color": colorDGray,
-        "primitive": CYLINDER
-      }]
-    },
-
-    {
-      "name": "rWheels",
-      "translation": [0.53, 0.1 , -.2],
-      "rotation": [0,0,90],
-      "scale": [0.2, 0.05, 0.2],
-      "children": [
-        {
-          "name": "rWheel1",
-          "lines": true,
-          "translation": [0, 0, (1 - (numWheels - 1) / 2) * wheelSpace],
-          "rotation": [0,0,0],
-          "color": colorDGray,
-          "primitive": CYLINDER
-
-      },
-      {
-        "name": "rWheel2",
-        "lines": true,
-        "translation": [0, 0, (2 - (numWheels - 1) / 2) * wheelSpace],
-        "rotation": [0,0,0],
-        "rotation": [0,0,0],
-        "color": colorDGray,
-        "primitive": CYLINDER
-
-      },
-      {
-        "name": "rWheel3",
-        "lines": true,
-        "translation": [0, 0, (3 - (numWheels - 1) / 2) * wheelSpace],
-        "rotation": [0,0,0],
-        "rotation": [0,0,0],
-        "color": colorDGray,
-        "primitive": CYLINDER,
+        "name": "wheels",
         "children": [
-          {//PUT IN LINE MODE AND SEE WHEEL SPIN
-            "translation": [0.3, 0.1, 0],
-            "rotation": [0,0,0],
-            "scale": [0.1, 0.1, 0.1],
-            "color": [1, 0, 0, 1],
-            "primitive": CUBE
-          }
-        ]
+          {
+            "name": "lWheels",
+            "translation": [-0.53, 0.1 , -.2],
+            "rotation": [0,0,90],
+            "scale": [0.2, 0.05, 0.2],
+            "children": [
+              {
+                "name": "lWheel1",
+                "lines": true,
+                "translation": [0, 0, (1 - (numWheels - 1) / 2) * wheelSpace],
+                "rotation": [0,0,0],
+                "color": colorDGray,
+                "primitive": CYLINDER
+              },
+              {
+                "name": "lWheel2",
+                "lines": true,
+                "translation": [0, 0, (2 - (numWheels - 1) / 2) * wheelSpace],
+                "rotation": [0,0,0],
+                "color": colorDGray,
+                "primitive": CYLINDER
+              },
+              {
+                "name": "lWheel3",
+                "lines": true,
+                "translation": [0, 0, (3 - (numWheels - 1) / 2) * wheelSpace],
+                "rotation": [0,0,0],
+                "color": colorDGray,
+                "primitive": CYLINDER
+              },
+              {
+                "name": "lWheel4",
+                "lines": true,
+                "translation": [0, 0, (4 - (numWheels - 1) / 2) * wheelSpace],
+                "rotation": [0,0,0],
+                "color": colorDGray,
+                "primitive": CYLINDER
+              },
+              {
+                "name": "lWheel5",
+                "lines": true,
+                "translation": [0, 0, (5 - (numWheels - 1) / 2) * wheelSpace],
+                "rotation": [0,0,0],
+                "color": colorDGray,
+                "primitive": CYLINDER
+              },
+              {
+                "name": "lWheel6",
+                "lines": true,
+                "translation": [0, 0, (6 - (numWheels - 1) / 2) * wheelSpace],
+                "rotation": [0,0,0],
+                "color": colorDGray,
+                "primitive": CYLINDER
+              }]
+          },
 
-      },
-      {
-        "name": "rWheel4",
-        "lines": true,
-        "translation": [0, 0, (4 - (numWheels - 1) / 2) * wheelSpace],
-        "rotation": [0,0,0],
-        "color": colorDGray,
-        "primitive": CYLINDER
-      },
-      {
-        "name": "rWheel5",
-        "lines": true,
-        "translation": [0, 0, (5 - (numWheels - 1) / 2) * wheelSpace],
-        "rotation": [0,0,0],
-        "color": colorDGray,
-        "primitive": CYLINDER
-      },
-      {
-        "name": "rWheel6",
-        "lines": true,
-        "translation": [0, 0, (6 - (numWheels - 1) / 2) * wheelSpace],
-        "rotation": [0,0,0],
-        "color": colorDGray,
-        "primitive": CYLINDER
-      }]
-    }
-      ]
-    },]
-    },
-      {//placeholder
-        "name": "tomatoes",
-        "translation": [0, 0, 0],
-        "rotation":[-90, 0, 0],
-        "scale": [0.05, 0.05, 0.05],
-        "children": []
-      }
-    ]
-  }
-  ];
+          {
+            "name": "rWheels",
+            "translation": [0.53, 0.1 , -.2],
+            "rotation": [0,0,90],
+            "scale": [0.2, 0.05, 0.2],
+            "children": [
+              {
+                "name": "rWheel1",
+                "lines": true,
+                "translation": [0, 0, (1 - (numWheels - 1) / 2) * wheelSpace],
+                "rotation": [0,0,0],
+                "color": colorDGray,
+                "primitive": CYLINDER
+            },
+            {
+              "name": "rWheel2",
+              "lines": true,
+              "translation": [0, 0, (2 - (numWheels - 1) / 2) * wheelSpace],
+              "rotation": [0,0,0],
+              "rotation": [0,0,0],
+              "color": colorDGray,
+              "primitive": CYLINDER
+            },
+            {
+              "name": "rWheel3",
+              "lines": true,
+              "translation": [0, 0, (3 - (numWheels - 1) / 2) * wheelSpace],
+              "rotation": [0,0,0],
+              "rotation": [0,0,0],
+              "color": colorDGray,
+              "primitive": CYLINDER,
+              "children": [
+                {//PUT IN LINE MODE AND SEE WHEEL SPIN
+                  "translation": [0.3, 0.1, 0],
+                  "rotation": [0,0,0],
+                  "scale": [0.1, 0.1, 0.1],
+                  "color": [1, 0, 0, 1],
+                  "primitive": CUBE
+                }]
+              },
+              {
+                  "name": "rWheel4",
+                  "lines": true,
+                  "translation": [0, 0, (4 - (numWheels - 1) / 2) * wheelSpace],
+                  "rotation": [0,0,0],
+                  "color": colorDGray,
+                  "primitive": CYLINDER
+              },
+              {
+                "name": "rWheel5",
+                "lines": true,
+                "translation": [0, 0, (5 - (numWheels - 1) / 2) * wheelSpace],
+                "rotation": [0,0,0],
+                "color": colorDGray,
+                "primitive": CYLINDER
+              },
+              {
+                "name": "rWheel6",
+                "lines": true,
+                "translation": [0, 0, (6 - (numWheels - 1) / 2) * wheelSpace],
+                "rotation": [0,0,0],
+                "color": colorDGray,
+                "primitive": CYLINDER
+              }]
+        }]
+    }]
+  }, 
+  {
+    "name": "tomatoes",
+    "translation": [0, 0, 0],
+    "rotation":[-90, 0, 0],
+    "scale": [0.05, 0.05, 0.05],
+    "children": []
+  }]
+}];
