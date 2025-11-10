@@ -22,7 +22,8 @@ let cabinAngle = 0;
 let cannonAngle = 90;
 const drone_orbit = 3;
 let tireRotation = 0;
-const projectile_power = 5;
+const dt = 0.016;
+const tomatoSpeed = 2;
 
 const graphScene = scene[0];
 
@@ -148,7 +149,6 @@ function setup(shaders) {
       if (n.scale) M = mult(M, scalem(...n.scale));
     }
 
-    // Apply to origin
     const pos = mult(M, vec4(def, 1));
     return [pos[0], pos[1], pos[2]];
   }
@@ -163,14 +163,7 @@ function setup(shaders) {
     }
     zoom = Math.min(Math.max(zoom, 0.1), 10.0);
 
-    // updateZoomDisplay();
   });
-
-
-
-  //
-  //case 'arrow keys':
-  // adjust axonometric/oblique parameters
 
   window.addEventListener("keydown", (event) => {
     switch (event.key) {
@@ -399,7 +392,7 @@ function setup(shaders) {
           tomatoContainerNode.translation = [pos[0], pos[1], pos[2]];
           const newTomato = {
             translation: [...pos],
-            vel: [0.2 * dir[0], 0.2 * dir[1], 0.2 * dir[2]],
+            vel: [dir[0], dir[1], dir[2]],
             color: [1.0, 0.0, 0.0, 1.0],
             time: 0,
             primitive: SPHERE
@@ -554,11 +547,11 @@ function setup(shaders) {
     if (tomatoContainer.children) {
 
       for (const t of tomatoContainer.children) {
-        t.translation[0] += projectile_power * t.vel[0];
-        t.translation[1] += projectile_power * t.vel[1];
-        t.translation[2] += projectile_power * t.vel[2];
-        // Add gravity
-        t.vel[1] -= 0.01; // g
+        t.translation[0] +=  tomatoSpeed * t.vel[0];
+        t.translation[1] +=  tomatoSpeed * t.vel[1];
+        t.translation[2] +=   tomatoSpeed * t.vel[2];
+
+        t.vel[1] -= 0.01; //GRAVITY
 
       }
     }
