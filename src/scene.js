@@ -407,7 +407,6 @@ var scene =
       {
         "name": "tomatoes",
         "translation": [0, 0, 0],
-        "rotation":[-90, 0, 0],
         "scale": [0.05, 0.05, 0.05],
         "children": []
       }]

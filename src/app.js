@@ -97,8 +97,36 @@ function setup(shaders) {
     return deg * Math.PI / 180.0;
   }
 
-  function getWorldPosition(node) {
-    if (!node) return [0, 0, 0];
+  function getWD(node){
+    const def = [0, -1, 0];
+    
+    if(!node) return def;
+    const chain = [];
+    let current = node;
+    while (current) {
+      chain.unshift(current);
+      current = current.parent;
+    }
+
+    let M = mat4();
+    for (const n of chain) {
+      if (n.translation) M = mult(M, translate(...n.translation));
+      if (n.rotation) {
+        M = mult(M, rotateZ(n.rotation[2]));
+        M = mult(M, rotateY(n.rotation[1]));
+        M = mult(M, rotateX(n.rotation[0]));
+      }
+      if (n.scale) M = mult(M, scalem(...n.scale));
+    }
+
+    const dir = mult(M, vec4(def, 0)); // w=0 means no translation
+    const len = Math.sqrt(dir[0]**2 + dir[1]**2 + dir[2]**2);
+    return [dir[0]/len, dir[1]/len, dir[2]/len];
+  }
+
+  function getWP(node) {
+    const def = [0,0,0];
+    if (!node) return def;
 
     // Gather transforms from root → node
     const chain = [];
@@ -113,16 +141,16 @@ function setup(shaders) {
     for (const n of chain) {
       if (n.translation) M = mult(M, translate(...n.translation));
       if (n.rotation) {
-        M = mult(M, rotateX(n.rotation[0]));
-        M = mult(M, rotateY(n.rotation[1]));
         M = mult(M, rotateZ(n.rotation[2]));
+        M = mult(M, rotateY(n.rotation[1]));
+        M = mult(M, rotateX(n.rotation[0]));
       }
       if (n.scale) M = mult(M, scalem(...n.scale));
     }
 
     // Apply to origin
-    const p = mult(M, vec4(0, 0, 0, 1));
-    return [p[0], p[1], p[2]];
+    const pos = mult(M, vec4(def, 1));
+    return [pos[0], pos[1], pos[2]];
   }
 
   canvas.addEventListener("wheel", (event) => {
@@ -188,7 +216,8 @@ function setup(shaders) {
     const tankNode = nodeMap.get("tank");
     const cabinNode = nodeMap.get("cabin");
     const cannonNode = nodeMap.get("cannonBarrel");
-    const cannonTipNode = nodeMap.get("cannonTipNode");
+    const cannonFireNode = nodeMap.get("cannonBarrel");
+    const tomatoContainerNode = nodeMap.get("tomatoes");
     const leftWheelNames = ['lWheel1', 'lWheel2', 'lWheel3', 'lWheel4', 'lWheel5', 'lWheel6'];
     const rightWheelNames = ['rWheel1', 'rWheel2', 'rWheel3', 'rWheel4', 'rWheel5', 'rWheel6'];
     console.log("Key pressed:", event.key);
@@ -360,30 +389,25 @@ function setup(shaders) {
       case 'Z':
 
         let pos = [0, 0, 0];
-        const dirX = Math.sin(radians(-cabinAngle)) * Math.cos(radians(cannonAngle));
-        const dirY = -Math.sin(radians(cannonAngle));
-        const dirZ = Math.cos(radians(cabinAngle)) * Math.cos(radians(cannonAngle));
+        let dir = [0, -1, 0];        
 
-        const cannonTipNode = nodeMap.get("cannonJoint");
-        const tomatoContainer = nodeMap.get("tomatoes");
-        
-
-        if (cannonTipNode && tomatoContainer) {
-
-          pos = getWorldPosition(cannonTipNode);
-          tomatoContainer.translation = [pos[0], pos[1], pos[2] + 0.4];
+        if (cannonFireNode && tomatoContainerNode) {
+          
+          pos = getWP(cannonFireNode);
+          dir = getWD(cannonFireNode);
+          tomatoContainerNode.translation = [pos[0], pos[1], pos[2] + 0.4];
           const newTomato = {
             translation: [...pos],
-            vel: [0.2 * dirX, 0.2 * dirY, 0.2 * dirZ],
+            vel: [0.2 * dir[0], 0.2 * dir[1], 0.2 * dir[2]],
             color: [1.0, 0.0, 0.0, 1.0],
             time: 0,
             primitive: SPHERE
           };
 
           // attach to scene graph
-          tomatoContainer.children.push(newTomato);
+          tomatoContainerNode.children.push(newTomato);
           console.log("addded toamto")
-          buildNodeMap(newTomato, tomatoContainer);
+          buildNodeMap(newTomato, tomatoContainerNode);
         }
 
         break;
