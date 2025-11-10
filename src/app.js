@@ -313,7 +313,7 @@ function setup(shaders) {
       case 'w':
       case 'W':
         //raise cannon
-        if (cannonAngle > 80)
+        if (cannonAngle > 85)
           cannonAngle -= 5;
 
         if (cannonNode) {

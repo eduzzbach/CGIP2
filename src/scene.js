@@ -115,21 +115,38 @@ var scene =
                                 "rotation": [0, 0, 0],
                                 "children": [
                                   {
-                                    "name": "cannonBarrel",
+                                    "name": "cannonJoint",
                                     "lines": true,
-                                    "translation": [0, 0, 0],  
-                                    "rotation": [90, 0, 0],  
-                                    "scale": [.05, 1.4 , .05],  
-                                    "primitive": CYLINDER,  
+                                    "translation": [0, 0, 0],
+                                    "scale": [0.1, 0.1 ,0.05],
                                     "color": colorYgreen,
+                                    "primitive": SPHERE,
                                     "children": [
                                       {
-                                        "name": "cannonJoint",
+                                        "name": "cannonBarrel",
                                         "lines": true,
-                                        "translation": [0, 0, 0],
-                                        "scale": [2.3, 0.01 ,2.3],
+                                        "translation": [0, 0, 0],  
+                                        "rotation": [90, 0, 0],  
+                                        "scale": [0.7, 25, 0.7],  
+                                        "primitive": CYLINDER,  
                                         "color": colorYgreen,
-                                        "primitive": SPHERE
+                                        "children": [
+                                          {
+                                            "name": "cannonMuzzle",
+                                            "lines": true,
+                                            "translation": [0 , -0.5, 0],
+                                            "scale": [1.2, 0.05, 1.200],
+                                            "color": colorYgreen,
+                                            "primitive": SPHERE,
+                                            "children":[
+                                              {
+                                                "name": "cannonFire",
+                                                "lines": true,
+                                                "scale": [0.6, 2, 0.6],
+                                                "color": colorYgreen,
+                                                "primitive": CYLINDER
+                                              }]
+                                          }]
                                       }] 
                                     }]
                               }]
