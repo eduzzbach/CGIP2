@@ -148,8 +148,24 @@ var scene =
                                               }]
                                           }]
                                       }] 
-                                    }]
-                              }]
+                                  }]
+                              },
+                              {
+                                "name": "entrance",
+                                "translation": [0, 0.5, 0],
+                                "scale": [0.2, 0.01, 0.2],
+                                "color": colorYgreen,
+                                "primitive": CYLINDER, 
+                                "children": [
+                                  {                                           
+                                    "name": "entrance2",
+                                    "lines": true,
+                                    "translation": [0, 1.5, 0],
+                                    "scale": [0.9, 0, 0.9],
+                                    "color": colorDgreen,
+                                    "primitive": CYLINDER
+                                  }]
+                                }]
                           }]
                       },
                       {
