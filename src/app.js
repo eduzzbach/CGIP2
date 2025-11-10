@@ -216,10 +216,11 @@ function setup(shaders) {
     const tankNode = nodeMap.get("tank");
     const cabinNode = nodeMap.get("cabin");
     const cannonNode = nodeMap.get("cannonBarrel");
-    const cannonFireNode = nodeMap.get("cannonBarrel");
+    const cannonFireNode = nodeMap.get("cannonFire");
     const tomatoContainerNode = nodeMap.get("tomatoes");
     const leftWheelNames = ['lWheel1', 'lWheel2', 'lWheel3', 'lWheel4', 'lWheel5', 'lWheel6'];
     const rightWheelNames = ['rWheel1', 'rWheel2', 'rWheel3', 'rWheel4', 'rWheel5', 'rWheel6'];
+
     console.log("Key pressed:", event.key);
     switch (event.key) {
       case '1':
@@ -395,7 +396,7 @@ function setup(shaders) {
           
           pos = getWP(cannonFireNode);
           dir = getWD(cannonFireNode);
-          tomatoContainerNode.translation = [pos[0], pos[1], pos[2] + 0.4];
+          tomatoContainerNode.translation = [pos[0], pos[1], pos[2]];
           const newTomato = {
             translation: [...pos],
             vel: [0.2 * dir[0], 0.2 * dir[1], 0.2 * dir[2]],
