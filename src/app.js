@@ -464,6 +464,9 @@ function setup(shaders) {
 
         uploadModelView();
         CUBE.draw(gl, program, mode);
+        gl.uniform4fv(uColor, [0, 0, 0, 1]); 
+        uploadModelView(); 
+        CUBE.draw(gl, program, gl.LINES);
         popMatrix();
       }
     }
