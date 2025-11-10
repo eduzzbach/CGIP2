@@ -56,7 +56,7 @@ var scene =
             "name": "base",
             "lines": true,
             "translation": [0, 0.1, 0],
-            "scale": [0.8, 0.1, 1.0],
+            "scale": [0.8, 0.1, 1],
             "primitive": CUBE,
             "color": colorDgreen,
             "children": [
@@ -64,7 +64,7 @@ var scene =
                 "name": "base2",
                 "lines": true,
                 "translation": [0, 1, 0],
-                "scale": [1.0, 1.2, 1.2],
+                "scale": [1.1, 1.2, 1.2],
                 "primitive": CUBE,
                 "color": colorYgreen,
                 "children": [
@@ -91,7 +91,7 @@ var scene =
                     "lines": true,
                     "translation": [0, 1, 0],
                     "rotation": [0, 180, 0],
-                    "scale": [1, 1, 0.9],                                      
+                    "scale": [1, 1, 0.8],                                      
                     "primitive": CUBE,
                     "color": colorLgreen,
                     "children": [
@@ -267,9 +267,9 @@ var scene =
             "children": [
               {
                 "name": "lWheels",
-                "translation": [-0.53, 0.1 , -.2],
+                "translation": [-0.47, 0.11 , -.2],
                 "rotation": [0,0,90],
-                "scale": [0.2, 0.05, 0.2],
+                "scale": [0.22, 0.05, 0.2],
                 "children": [
                   {
                     "name": "lWheel1",
@@ -322,9 +322,9 @@ var scene =
               },
               {
                 "name": "rWheels",
-                "translation": [0.53, 0.1 , -.2],
+                "translation": [0.47, 0.11 , -.2],
                 "rotation": [0,0,90],
-                "scale": [0.2, 0.05, 0.2],
+                "scale": [0.22, 0.05, 0.2],
                 "children": [
                   {
                     "name": "rWheel1",
