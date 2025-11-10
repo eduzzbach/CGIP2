@@ -132,7 +132,6 @@ var scene =
                                             "children":[
                                               {
                                                 "name": "cannonFire",
-                                                "mModel": null,
                                                 "lines": true,
                                                 "scale": [0.6, 2, 0.6],
                                                 "color": colorYgreen,
