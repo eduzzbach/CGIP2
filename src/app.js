@@ -14,7 +14,6 @@ let animation = true;
 let theta = 45;
 let gamma = 63.4;
 let zoom = 1.0;
-let projectiles = [];
 let time = 0;
 
 let tankPos = [0, 0, 0];
@@ -22,29 +21,25 @@ let cabinAngle = 0;
 let cannonAngle = 90;
 const drone_orbit = 3;
 let tireRotation = 0;
-const dt = 0.016;
 const tomatoSpeed = 2;
 
 const graphScene = scene[0];
 
 let nodeMap = new Map();
 
-//projection booleans
 let multiView = false;
 let isOblique = false;
 let isPerspective = false;
 
-//floor constants
 const floorSize = 20;
 const tileSize = 0.25;
 const tileHeight = 0.05;
 
 
-//types of views
-const fView = lookAt([0, 0.6, 1], [0, 0.6, 0], [0, 1, 0]); // front view
-const sView = lookAt([1, 0.6, 0.], [0, 0.6, 0], [0, 1, 0]); // side view
-const tView = lookAt([0, 1.6, 0], [0, 0.6, 0], [0, 0, -1]); // top view
-const oView = lookAt([2, 1.2, 1], [0, 0.6, 0], [0, 1, 0]); // original view
+const fView = lookAt([0, 0.6, 1], [0, 0.6, 0], [0, 1, 0]);
+const sView = lookAt([1, 0.6, 0.], [0, 0.6, 0], [0, 1, 0]); 
+const tView = lookAt([0, 1.6, 0], [0, 0.6, 0], [0, 0, -1]);
+const oView = lookAt([2, 1.2, 1], [0, 0.6, 0], [0, 1, 0]);
 
 
 
@@ -55,7 +50,6 @@ function setup(shaders) {
   /** @type WebGL2RenderingContext */
   let gl = setupWebGL(canvas);
 
-  // Drawing mode (gl.LINES or gl.TRIANGLES)
   let mode = gl.TRIANGLES;
 
   let program = buildProgramFromSources(gl, shaders["shader.vert"], shaders["shader.frag"]);
@@ -66,10 +60,9 @@ function setup(shaders) {
   resize_canvas();
   window.addEventListener("resize", resize_canvas);
 
-  // renders the perspective view
   function togglePerspective(baseOrtho) {
     if (isPerspective) {
-      const fov = 60; // field of view in degrees
+      const fov = 60; 
       const near = 0.1;
       const far = 20.0;
       mProjection = perspective(fov, aspect, near, far);
@@ -78,11 +71,10 @@ function setup(shaders) {
     }
   }
 
-  // renders the axometric view
   function toggleAxometric() {
     const isoDistance = 2.0;
-    const angle = Math.PI / 4; // 45°
-    const heightAngle = Math.atan(Math.tan(radians(35.26))); // 35.26° elevation
+    const angle = Math.PI / 4; 
+    const heightAngle = Math.atan(Math.tan(radians(35.26))); 
     const eye = [
       isoDistance * Math.cos(angle),
       isoDistance * Math.sin(heightAngle),
@@ -93,12 +85,12 @@ function setup(shaders) {
   }
 
 
-  //convert degrees in radians
   function radians(deg) {
     return deg * Math.PI / 180.0;
   }
 
-  function getWD(node){
+
+  function getModel(node){
     const def = [0, -1, 0];
     
     if(!node) return def;
@@ -120,37 +112,7 @@ function setup(shaders) {
       if (n.scale) M = mult(M, scalem(...n.scale));
     }
 
-    const dir = mult(M, vec4(def, 0)); // w=0 means no translation
-    const len = Math.sqrt(dir[0]**2 + dir[1]**2 + dir[2]**2);
-    return [dir[0]/len, dir[1]/len, dir[2]/len];
-  }
-
-  function getWP(node) {
-    const def = [0,0,0];
-    if (!node) return def;
-
-    // Gather transforms from root → node
-    const chain = [];
-    let current = node;
-    while (current) {
-      chain.unshift(current);
-      current = current.parent;
-    }
-
-    // Build transform matrix
-    let M = mat4();
-    for (const n of chain) {
-      if (n.translation) M = mult(M, translate(...n.translation));
-      if (n.rotation) {
-        M = mult(M, rotateZ(n.rotation[2]));
-        M = mult(M, rotateY(n.rotation[1]));
-        M = mult(M, rotateX(n.rotation[0]));
-      }
-      if (n.scale) M = mult(M, scalem(...n.scale));
-    }
-
-    const pos = mult(M, vec4(def, 1));
-    return [pos[0], pos[1], pos[2]];
+    return M;
   }
 
   canvas.addEventListener("wheel", (event) => {
@@ -217,41 +179,30 @@ function setup(shaders) {
     console.log("Key pressed:", event.key);
     switch (event.key) {
       case '1':
-        // Front view
-
         mView = fView;
         break;
 
       case '2':
-        // Right view
-
         mView = sView;
         break;
 
       case '3':
-        // Top view
-
         mView = tView;
         break;
 
-      case '4': //case '8' alters the type of view in this case
-        // Axometric view
-
+      case '4': 
         toggleAxometric();
         break;
 
       case '0':
-        //toggle multiple views or single view
         multiView = !multiView;
         break;
 
       case '8':
-        //toggle between axonometric view and oblique view when view 4
         if (!isPerspective)
           isOblique = !isOblique;
 
         if (isOblique) {
-          // use same eye position as axonometric but from slightly different direction
           const eye = [1.5, 1.2, 1.0];
           mView = lookAt(eye, [0, 0.6, 0], [0, 1, 0]);
         } else {
@@ -262,14 +213,12 @@ function setup(shaders) {
         break;
 
       case '9':
-        // toggle between parallel vs perspective views
         if (!isOblique)
           isPerspective = !isPerspective;
         break;
 
       case 'r':
       case 'R':
-        //reset projection to the initial view and zoom
         const range = 2.0;
         mProjection = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
         mView = oView;
@@ -335,7 +284,6 @@ function setup(shaders) {
 
       case 'w':
       case 'W':
-        //raise cannon
         if (cannonAngle > 85)
           cannonAngle -= 5;
 
@@ -348,7 +296,6 @@ function setup(shaders) {
 
       case 's':
       case 'S':
-        //lower cannon
         if (cannonAngle < 130)
           cannonAngle += 5;
         if (cannonNode) {
@@ -359,7 +306,6 @@ function setup(shaders) {
 
       case 'a':
       case 'A':
-        //rotate cabin counter clockwise
         cabinAngle += 5;
 
         if (cabinNode) {
@@ -369,7 +315,6 @@ function setup(shaders) {
 
       case 'd':
       case 'D':
-        //rotate cabin clockwise
         cabinAngle -= 5;
         if (cabinNode) {
           cabinNode.rotation = [0, cabinAngle, 0];
@@ -377,18 +322,25 @@ function setup(shaders) {
         break;
 
 
-      //quando mudas as coordenadas da cabine ou do canhão, os tomatos deixam de sair de dentro do canhão
-      //do código que faz cenas aqui é procurar nas linhas: 533 a 542, 603 a 611 
       case 'z':
       case 'Z':
 
         let pos = [0, 0, 0];
-        let dir = [0, -1, 0];        
+        let dir = [0, -1, 0];
+        let m = mat4();
+
 
         if (cannonFireNode && tomatoContainerNode) {
-          
-          pos = getWP(cannonFireNode);
-          dir = getWD(cannonFireNode);
+
+          m = getModel(cannonFireNode);
+
+          const posTmp = mult(m, vec4(pos, 1));
+          pos = [posTmp[0], posTmp[1], posTmp[2]];
+
+          dir = mult(m, vec4(dir, 0));
+          const len = Math.sqrt(dir[0]**2 + dir[1]**2 + dir[2]**2);
+          dir = [dir[0]/len, dir[1]/len, dir[2]/len];
+
           tomatoContainerNode.translation = [pos[0], pos[1], pos[2]];
           const newTomato = {
             translation: [...pos],
@@ -398,7 +350,6 @@ function setup(shaders) {
             primitive: SPHERE
           };
 
-          // attach to scene graph
           tomatoContainerNode.children.push(newTomato);
           console.log("addded toamto")
           buildNodeMap(newTomato, tomatoContainerNode);
@@ -408,7 +359,6 @@ function setup(shaders) {
 
       case ' ':
       case 'Spacebar':
-        // changes between wireframe and solid
         mode = (mode === gl.TRIANGLES) ? gl.LINES : gl.TRIANGLES;
         break;
 
@@ -416,7 +366,7 @@ function setup(shaders) {
   }
 
   gl.clearColor(0.3, 0.3, 0.3, 1.0);
-  gl.enable(gl.DEPTH_TEST);   // Enables Z-buffer depth test
+  gl.enable(gl.DEPTH_TEST); 
 
   CUBE.init(gl);
   CYLINDER.init(gl);
@@ -437,31 +387,28 @@ function setup(shaders) {
   function drawNode(gl, program, node, mode) {
     pushMatrix();
 
-    // apply transformations in fixed order
     if (node.translation) multTranslation(node.translation);
     if (node.rotation) {
-      multRotationZ(node.rotation[2]);  // Z first
-      multRotationY(node.rotation[1]);  // Y second  
+      multRotationZ(node.rotation[2]);  
+      multRotationY(node.rotation[1]);  
       multRotationX(node.rotation[0]);
-    }  // X l
+    }  
     if (node.scale) multScale(node.scale);
 
-    // draw if leaf
     if (node.primitive) {
       const uColor = gl.getUniformLocation(program, "u_color");
       gl.uniform4fv(uColor, node.color);
       uploadModelView();
       node.primitive.draw(gl, program, mode);
       if (node.lines) {
-        gl.uniform4fv(uColor, [0, 0, 0, 1]); // Black lines
-        uploadModelView(); // Re-upload same matrix
+        gl.uniform4fv(uColor, [0, 0, 0, 1]); 
+        uploadModelView(); 
         node.primitive.draw(gl, program, gl.LINES);
       }
 
     }
 
 
-    // recurse
     if (node.children) for (const child of node.children)
       drawNode(gl, program, child, mode);
 
@@ -485,7 +432,6 @@ function setup(shaders) {
     uploadMatrix("u_projection", mProjection);
   }
 
-  //matrix usada para a projeção oblíqua
   function obliqueMatrix(thetaDeg = 45, gammaDeg = 45) {
     theta = thetaDeg * Math.PI / 180.0;
     gamma = gammaDeg * Math.PI / 180.0;
@@ -493,7 +439,6 @@ function setup(shaders) {
     const cotGamma = 1 / Math.tan(gamma);
     const l = Math.cos(theta) * cotGamma;
     const m = Math.sin(theta) * cotGamma;
-    // Standard oblique shear matrix
     return [
       [1, 0, l, 0],
       [0, 1, m, 0],
@@ -558,7 +503,6 @@ function setup(shaders) {
   }
 
   function render() {
-    //este animation é usado para a rotação do drone
     if (animation) time += speed;
     window.requestAnimationFrame(render);
 
@@ -566,13 +510,12 @@ function setup(shaders) {
 
     gl.useProgram(program);
 
-    // é preciso mudar um bocado o range para a proj. Oblíqua ver-se bem
     const range = isOblique ? 3.0 : 2.0;
     const baseOrtho = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
 
 
     if (!multiView) {
-      mProjection = baseOrtho; //original view
+      mProjection = baseOrtho; 
 
 
       if (!isOblique && !isPerspective) {
@@ -599,12 +542,11 @@ function setup(shaders) {
 
 
     }
-    else { //when multiview is true
+    else { 
 
       const halfWidth = canvas.width / 2;
       const halfHeight = canvas.height / 2;
 
-      // Helper to render one view
       function drawView(viewMatrix, x, y, w, h) {
         mProjection = baseOrtho;
         togglePerspective(baseOrtho);
@@ -618,7 +560,6 @@ function setup(shaders) {
 
       }
 
-      // Define the 4 camera views:
       const views = {
         front: fView,
         right: sView,
@@ -631,7 +572,6 @@ function setup(shaders) {
       };
 
       if (multiView) {
-        // Render each in its quadrant
         drawView(views.front, 0, halfHeight, halfWidth, halfHeight);         // top-left
         drawView(views.right, halfWidth, halfHeight, halfWidth, halfHeight); // top-right
         drawView(views.top, 0, 0, halfWidth, halfHeight);                    // bottom-left

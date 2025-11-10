@@ -9,7 +9,6 @@ import * as PYRAMID from '../../libs/objects/pyramid.js';
 const numWheels = 6
 const wheelSpace = 1
  
-
  const rotorUPositions = [
       [0.4, 0.3, 0.4],
       [-0.4, 0.3, 0.4],
@@ -22,13 +21,6 @@ const wheelSpace = 1
       [-0.4, -0.3, 0.4],
       [0.4, -0.3, 0.4]
     ];
-
-  let xPos = 0;
-
-    
-let tankPos = [0, 0, 0];
-
-
 
 const colorDgreen = [0.2, 0.3, 0.1, 1.0];
 const colorLgreen = [0.3, 0.4, 0.1, 1.0];
@@ -48,7 +40,6 @@ var scene =
     "children": [
       {
         "name": "tank",
-        "translation": tankPos,
         "rotation": [0, 0, 0],
         "scale": [1, 1, 1],
         "children": [
@@ -141,6 +132,7 @@ var scene =
                                             "children":[
                                               {
                                                 "name": "cannonFire",
+                                                "mModel": null,
                                                 "lines": true,
                                                 "scale": [0.6, 2, 0.6],
                                                 "color": colorYgreen,
