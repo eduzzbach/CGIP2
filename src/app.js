@@ -1,7 +1,7 @@
 import { buildProgramFromSources, loadShadersFromURLS, setupWebGL } from "../../libs/utils.js";
 import { ortho, lookAt, flatten, mult, perspective, mat4, translate, rotateX, rotateY, rotateZ, scalem, vec4 } from "../../libs/MV.js";
 import { modelView, loadMatrix, multRotationX, multRotationY, multRotationZ, multScale, multTranslation, popMatrix, pushMatrix } from "../../libs/stack.js";
-import { scene } from './scene.js';
+import { genTomato, scene } from './scene.js';
 
 import * as CUBE from '../../libs/objects/cube.js';
 import * as SPHERE from '../../libs/objects/sphere.js';
@@ -342,17 +342,9 @@ function setup(shaders) {
           dir = [dir[0]/len, dir[1]/len, dir[2]/len];
 
           tomatoContainerNode.translation = [pos[0], pos[1], pos[2]];
-          const newTomato = {
-            translation: [...pos],
-            vel: [dir[0], dir[1], dir[2]],
-            color: [1.0, 0.0, 0.0, 1.0],
-            time: 0,
-            primitive: SPHERE
-          };
-
-          tomatoContainerNode.children.push(newTomato);
-          console.log("addded toamto")
-          buildNodeMap(newTomato, tomatoContainerNode);
+          const t = genTomato(pos, dir);
+          tomatoContainerNode.children.push(t);
+          buildNodeMap(t, tomatoContainerNode);
         }
 
         break;

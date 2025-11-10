@@ -1,4 +1,4 @@
-export {scene};
+export {scene, genTomato};
 
 
 import * as CUBE from '../../libs/objects/cube.js';
@@ -29,6 +29,17 @@ const colorGwhite = [0.0, 0.0, 0.0, 0.5];
 const colorLblue = [0.0, 0.3, 1.0, 0.5];
 const colorDblue = [0., 0., 0.7, 1.0];
 const colorDGray = [0.1, 0.1, 0.1, 1];
+const colorRed = [1, 0, 0, 1];
+
+function genTomato(pos, dir){
+   return {
+            translation: [...pos],
+            vel: [dir[0], dir[1], dir[2]],
+            color: colorRed,
+            time: 0,
+            primitive: SPHERE
+          };
+}
 
 
 
