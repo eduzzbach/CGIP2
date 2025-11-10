@@ -301,7 +301,7 @@ var scene =
               {
                 "name": "lWheels",
                 "translation": [-0.47, 0.11 , -.2],
-                "rotation": [0,0,90],
+                "rotation": [0,0,-90],
                 "scale": [0.22, 0.05, 0.2],
                 "children": [
                   {
@@ -342,7 +342,15 @@ var scene =
                     "translation": [0, 0, (5 - (numWheels - 1) / 2) * wheelSpace],
                     "rotation": [0,0,0],
                     "color": colorDGray,
-                    "primitive": CYLINDER
+                    "primitive": CYLINDER,
+                    "children": [
+                    {//PUT IN LINE MODE AND SEE WHEEL SPIN
+                      "translation": [0.3, 0.1, 0],
+                      "rotation": [0,0,0],
+                      "scale": [0.1, 0.1, 0.1],
+                      "color": [1, 0, 0, 1],
+                      "primitive": CUBE
+                    }]
                   },
                   {
                     "name": "lWheel6",
@@ -356,7 +364,7 @@ var scene =
               {
                 "name": "rWheels",
                 "translation": [0.47, 0.11 , -.2],
-                "rotation": [0,0,90],
+                "rotation": [0,0,-90],
                 "scale": [0.22, 0.05, 0.2],
                 "children": [
                   {
