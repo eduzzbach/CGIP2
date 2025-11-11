@@ -109,13 +109,7 @@ function setup(shaders) {
     const thetaDeg = theta * Math.PI / 180;
     const gammaDeg = gamma * Math.PI / 180;
 
-    const eye = [
-      isoDistance * Math.cos(gammaDeg) * Math.sin(thetaDeg),
-      isoDistance * Math.sin(gammaDeg),
-      isoDistance * Math.cos(gammaDeg) * Math.cos(thetaDeg)
-    ];
-
-    mView = lookAt(eye, [0, 0.6, 0], [0, 1, 0]);
+    mView = lookAt([2, 1.2, 1], [0, 0.6, 0], [0, 1, 0]);;
 
     mProjection = mult(baseOrtho, obliqueMatrix(thetaDeg, gammaDeg));
 
