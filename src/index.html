@@ -1,16 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
   <title>Projeto 2</title>
   <link rel="stylesheet" href="styles.css">
   <script type="module" src="./app.js"></script>
+
+  <style>
+    #menu {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(220, 220, 220, 0.5);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 0.9em;
+    }
+
+    #menu p,
+    #menu div {
+      margin: 2px 0;
+    }
+  </style>
 </head>
 
 <body>
-  <canvas id="gl-canvas" width="128" height="128">
-    Oops! Something went wrong!
-  </canvas>
+  <canvas id="gl-canvas" width="128" height="128"> </canvas>
+
+  <div id="menu">
+    <div><strong>Keys:</strong></div>
+    <div>'h' - Toggle this panel</div>
+    <div>'0' - Toggle multiple views</div>
+    <div>'1' - Front view</div>
+    <div>'2' - Left view</div>
+    <div>'3' - Top view</div>
+    <div>'4' - Axonometric view</div>
+    <div>'8' - Toggle Axonometric/Oblique View</div>
+    <div>'9' - Toggle Parallel/Perspective View</div>
+    <div>' ' - Toggle wireframe/solid</div>
+    <div>'q' - Move forward</div>
+    <div>'e' - Move backwards</div>
+    <div>'w' - Raise Cannon</div>
+    <div>'s' - Lower Cannon</div>
+    <div>'a' - rotate cabin counterclockwise</div>
+    <div>'d' - rotate cabin clockwise</div>
+    <div>'r' - Reset view params</div>
+    <div>'ArrowLeft' - Increase theta</div>
+    <div>'ArrowRight' - Decrease theta</div>
+    <div>'ArrowUp' - Increase gamma</div>
+    <div>'ArrowDown' - Decrease gamma</div>
+  </div>
 </body>
 
 </html>
