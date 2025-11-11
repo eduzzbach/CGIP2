@@ -24,7 +24,7 @@ let cabinAngle = 0;
 let cannonAngle = 90;
 const drone_orbit = 3;
 let tireRotation = 0;
-const tomatoSpeed = 2;
+const tomatoSpeed = 3;
 
 const graphScene = scene[0];
 
@@ -98,12 +98,12 @@ function setup(shaders) {
   }
 
   function toggleOblique(baseOrtho) {
-    const thetaDeg = theta * Math.PI / 180;
-    const gammaDeg = gamma * Math.PI / 180;
+    const thetaDeg = theta;
+    const l = 1;
 
     mView = lookAt([2, 1.2, 1], [0, 0.6, 0], [0, 1, 0]);;
 
-    mProjection = mult(baseOrtho, obliqueMatrix(thetaDeg, gammaDeg));
+    mProjection = mult(baseOrtho, obliqueMatrix(thetaDeg, l));
 
   }
 
@@ -229,7 +229,7 @@ function setup(shaders) {
       case '3':
         // Top view
         currentView = topV;
-        lastView = sideV;
+        lastView = topV;
         mView = tView;
         break;
 
@@ -246,17 +246,15 @@ function setup(shaders) {
         break;
 
       case '8':
-        if (currentView === axoV || currentView === orthoV) { // only toggle from axo/oblique
           isOblique = !isOblique;
           if (isOblique) {
-            currentView = orthoV;
-            lastView = orth;
+            currentView = obliqV;
+            lastView = obliqV;
           } else {
             currentView = axoV;
             lastView = axoV;
           }
           updateView();
-        }
         break;
 
       case '9':
@@ -452,13 +450,11 @@ function setup(shaders) {
         uploadModelView();
         node.primitive.draw(gl, program, gl.LINES);
       }
-
     }
 
-
-    if (node.children) for (const child of node.children)
+    if (node.children) for (const child of node.children){
       drawNode(gl, program, child, mode);
-
+    }
     popMatrix();
   }
 
@@ -479,17 +475,14 @@ function setup(shaders) {
     uploadMatrix("u_projection", mProjection);
   }
 
-  function obliqueMatrix(thetaDeg, gammaDeg) {
+  function obliqueMatrix(thetaDeg, l) {
 
-    const cotGamma = 1 / Math.tan(gammaDeg);
-    const l = Math.cos(thetaDeg) * cotGamma;
-    const m = Math.sin(thetaDeg) * cotGamma;
+    const thetaRad = radians(thetaDeg);
 
-    // Standard oblique shear matrix
     return [
-      [1, 0, l, 0],
-      [0, 1, m, 0],
-      [0, 0, 1, 0],
+      [1, 0, -l*Math.cos(thetaRad), 0],
+      [0, 1, -l*Math.sin(thetaRad), 0],
+      [0, 0, 0, 0],
       [0, 0, 0, 1]
     ];
   }

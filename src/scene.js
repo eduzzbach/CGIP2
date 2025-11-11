@@ -93,14 +93,14 @@ var scene =
                     "lines": true,
                     "translation": [0, 1, 0],
                     "rotation": [0, 180, 0],
-                    "scale": [1, 1, 0.8],                                      
+                    "scale": [1, 1, 0.75],                                      
                     "primitive": CUBE,
                     "color": colorLgreen,
                     "children": [
                       {
                         "name": "cabin",
                         "lines": true,
-                        "translation": [0, 1.1, -0.1],
+                        "translation": [0, 0.8, -0.1],
                         "rotation": [0, 0, 0],
                         "scale": [0.5, 2.5 , 0.5],
                         "primitive": SPHERE,
