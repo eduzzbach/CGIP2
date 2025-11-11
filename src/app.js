@@ -336,34 +336,31 @@ function setup(shaders) {
         });
         break;
 
-
-
       case 's':
       case 'S':
-        if (cannonAngle > 85)
+        if (cannonAngle > 85){
           cannonAngle -= 5;
-
+        }
         if (cannonNode) {
           cannonNode.rotation = [cannonAngle, 0, 0];
         }
-
-
         break;
 
       case 'w':
       case 'W':
-        if (cannonAngle < 130)
+        if (cannonAngle < 130){
           cannonAngle += 5;
+        }
         if (cannonNode) {
           cannonNode.rotation = [cannonAngle, 0, 0];
         }
-
         break;
 
       case 'a':
       case 'A':
-        cabinAngle += 5;
-
+        if(cabinAngle < 80){
+          cabinAngle += 5;
+        }
         if (cabinNode) {
           cabinNode.rotation = [0, cabinAngle, 0];
         }
@@ -371,7 +368,9 @@ function setup(shaders) {
 
       case 'd':
       case 'D':
-        cabinAngle -= 5;
+        if (cabinAngle > -80 ){
+            cabinAngle -= 5;
+        }
         if (cabinNode) {
           cabinNode.rotation = [0, cabinAngle, 0];
         }
