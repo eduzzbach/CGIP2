@@ -1,7 +1,7 @@
 import { buildProgramFromSources, loadShadersFromURLS, setupWebGL } from "../../libs/utils.js";
 import { ortho, lookAt, flatten, mult, perspective, mat4, translate, rotateX, rotateY, rotateZ, scalem, vec4 } from "../../libs/MV.js";
 import { modelView, loadMatrix, multRotationX, multRotationY, multRotationZ, multScale, multTranslation, popMatrix, pushMatrix } from "../../libs/stack.js";
-import { scene } from './scene.js';
+import { genTomato, scene } from './scene.js';
 
 import * as CUBE from '../../libs/objects/cube.js';
 import * as SPHERE from '../../libs/objects/sphere.js';
@@ -14,7 +14,6 @@ let animation = true;
 let theta = 45;
 let gamma = 35;
 let zoom = 1.0;
-let projectiles = [];
 let time = 0;
 const isoDistance = 2.0;
 
@@ -25,13 +24,12 @@ let cabinAngle = 0;
 let cannonAngle = 90;
 const drone_orbit = 3;
 let tireRotation = 0;
-const projectile_power = 5;
+const tomatoSpeed = 2;
 
 const graphScene = scene[0];
 
 let nodeMap = new Map();
 
-//projection booleans
 let multiView = false;
 let isOblique = false;
 let isPerspective = false;
@@ -46,17 +44,15 @@ const orthoV = 'orthometric';
 let currentView = orthoV;
 let lastView = orthoV;
 
-//floor constants
 const floorSize = 20;
 const tileSize = 0.25;
 const tileHeight = 0.05;
 
 
-//types of views
-const fView = lookAt([0, 0.6, 1], [0, 0.6, 0], [0, 1, 0]); // front view
-const sView = lookAt([1, 0.6, 0.], [0, 0.6, 0], [0, 1, 0]); // side view
-const tView = lookAt([0, 1.6, 0], [0, 0.6, 0], [0, 0, -1]); // top view
-const oView = lookAt([2, 1.2, 1], [0, 0.6, 0], [0, 1, 0]); // original view
+const fView = lookAt([0, 0.6, 1], [0, 0.6, 0], [0, 1, 0]);
+const sView = lookAt([1, 0.6, 0.], [0, 0.6, 0], [0, 1, 0]);
+const tView = lookAt([0, 1.6, 0], [0, 0.6, 0], [0, 0, -1]);
+const oView = lookAt([2, 1.2, 1], [0, 0.6, 0], [0, 1, 0]);
 let aView; // Axonometric view
 
 
@@ -68,7 +64,6 @@ function setup(shaders) {
   /** @type WebGL2RenderingContext */
   let gl = setupWebGL(canvas);
 
-  // Drawing mode (gl.LINES or gl.TRIANGLES)
   let mode = gl.TRIANGLES;
 
   let program = buildProgramFromSources(gl, shaders["shader.vert"], shaders["shader.frag"]);
@@ -79,10 +74,9 @@ function setup(shaders) {
   resize_canvas();
   window.addEventListener("resize", resize_canvas);
 
-  // renders the perspective view
   function togglePerspective(baseOrtho) {
     if (isPerspective) {
-      const fov = 60; // field of view in degrees
+      const fov = 60;
       const near = 0.1;
       const far = 20.0;
       mProjection = perspective(fov, aspect, near, far);
@@ -91,7 +85,6 @@ function setup(shaders) {
     }
   }
 
-  // renders the Axonomeric view
   function toggleAxonometric() {
     const thetaDeg = theta * Math.PI / 180;
     const gammaDeg = gamma * Math.PI / 180;
@@ -104,7 +97,6 @@ function setup(shaders) {
     aView = lookAt(eye, [0, 0.6, 0], [0, 1, 0]);
   }
 
-  //renders the Oblique view
   function toggleOblique(baseOrtho) {
     const thetaDeg = theta * Math.PI / 180;
     const gammaDeg = gamma * Math.PI / 180;
@@ -114,7 +106,6 @@ function setup(shaders) {
     mProjection = mult(baseOrtho, obliqueMatrix(thetaDeg, gammaDeg));
 
   }
-
 
   function toggleMenu() {
     const menuDiv = document.getElementById("menu");
@@ -126,15 +117,15 @@ function setup(shaders) {
 
 
 
-  //convert degrees in radians
   function radians(deg) {
     return deg * Math.PI / 180.0;
   }
 
-  function getWorldPosition(node) {
-    if (!node) return [0, 0, 0];
 
-    // Gather transforms from root → node
+  function getModel(node) {
+    const def = [0, -1, 0];
+
+    if (!node) return def;
     const chain = [];
     let current = node;
     while (current) {
@@ -142,21 +133,18 @@ function setup(shaders) {
       current = current.parent;
     }
 
-    // Build transform matrix
     let M = mat4();
     for (const n of chain) {
       if (n.translation) M = mult(M, translate(...n.translation));
       if (n.rotation) {
-        M = mult(M, rotateX(n.rotation[0]));
-        M = mult(M, rotateY(n.rotation[1]));
         M = mult(M, rotateZ(n.rotation[2]));
+        M = mult(M, rotateY(n.rotation[1]));
+        M = mult(M, rotateX(n.rotation[0]));
       }
       if (n.scale) M = mult(M, scalem(...n.scale));
     }
 
-    // Apply to origin
-    const p = mult(M, vec4(0, 0, 0, 1));
-    return [p[0], p[1], p[2]];
+    return M;
   }
 
   canvas.addEventListener("wheel", (event) => {
@@ -169,30 +157,10 @@ function setup(shaders) {
     }
     zoom = Math.min(Math.max(zoom, 0.1), 10.0);
 
-    // updateZoomDisplay();
   });
-  //
-  //case 'arrow keys':
-  // adjust axonometric/oblique parameters
 
-
-
-  window.addEventListener("keydown", function (event) {
-
-    const tankNode = nodeMap.get("tank");
-    const cabinNode = nodeMap.get("cabin");
-    const cannonNode = nodeMap.get("cannonBarrel");
-    const cannonTipNode = nodeMap.get("cannonTipNode");
-    const leftWheelNames = ['lWheel1', 'lWheel2', 'lWheel3', 'lWheel4', 'lWheel5', 'lWheel6'];
-    const rightWheelNames = ['rWheel1', 'rWheel2', 'rWheel3', 'rWheel4', 'rWheel5', 'rWheel6'];
-    console.log("Key pressed:", event.key);
+  window.addEventListener("keydown", (event) => {
     switch (event.key) {
-
-      case 'h':
-      case 'H':
-        toggleMenu();
-        break;
-
       case "ArrowUp":
         gamma += 1;
         gamma = Math.min(Math.max(gamma, 1), 89);
@@ -224,7 +192,26 @@ function setup(shaders) {
 
         event.preventDefault();
         break;
+    }
+  });
 
+
+  document.onkeydown = function (event) {
+
+    const tankNode = nodeMap.get("tank");
+    const cabinNode = nodeMap.get("cabin");
+    const cannonNode = nodeMap.get("cannonBarrel");
+    const cannonFireNode = nodeMap.get("cannonFire");
+    const tomatoContainerNode = nodeMap.get("tomatoes");
+    const leftWheelNames = ['lWheel1', 'lWheel2', 'lWheel3', 'lWheel4', 'lWheel5', 'lWheel6'];
+    const rightWheelNames = ['rWheel1', 'rWheel2', 'rWheel3', 'rWheel4', 'rWheel5', 'rWheel6'];
+
+    console.log("Key pressed:", event.key);
+    switch (event.key) {
+      case 'h':
+      case 'H':
+        toggleMenu();
+        break;
       case '1':
         // Front view
         currentView = frontV;
@@ -233,7 +220,7 @@ function setup(shaders) {
         break;
 
       case '2':
-        // Right view
+        // Side view
         currentView = sideV;
         lastView = sideV;
         mView = sView;
@@ -246,7 +233,7 @@ function setup(shaders) {
         mView = tView;
         break;
 
-      case '4': //case '8' alters the type of view in this case
+      case '4':
         // Axonometric view
         currentView = axoV;
         lastView = axoV;
@@ -255,12 +242,10 @@ function setup(shaders) {
         break;
 
       case '0':
-        //toggle multiple views or single view
         multiView = !multiView;
         break;
 
       case '8':
-        //toggle between axonometric view and oblique view when view 4
         if (currentView === axoV || currentView === obliqV) { // only toggle from axo/oblique
           isOblique = !isOblique;
           if (isOblique) {
@@ -273,10 +258,9 @@ function setup(shaders) {
           updateView();
         }
         break;
+
       case '9':
-        // toggle between parallel vs perspective views
         if (!isPerspective) {
-          // store the current view to return to later
           lastView = currentView;
           isPerspective = true;
           currentView = persV;
@@ -289,7 +273,6 @@ function setup(shaders) {
 
       case 'r':
       case 'R':
-        //reset projection to the initial view and zoom
         const range = 2.0;
         mProjection = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
         mView = oView;
@@ -357,8 +340,7 @@ function setup(shaders) {
 
       case 's':
       case 'S':
-        //raise cannon
-        if (cannonAngle > 80)
+        if (cannonAngle > 85)
           cannonAngle -= 5;
 
         if (cannonNode) {
@@ -370,7 +352,6 @@ function setup(shaders) {
 
       case 'w':
       case 'W':
-        //lower cannon
         if (cannonAngle < 130)
           cannonAngle += 5;
         if (cannonNode) {
@@ -381,7 +362,6 @@ function setup(shaders) {
 
       case 'a':
       case 'A':
-        //rotate cabin counter clockwise
         cabinAngle += 5;
 
         if (cabinNode) {
@@ -391,7 +371,6 @@ function setup(shaders) {
 
       case 'd':
       case 'D':
-        //rotate cabin clockwise
         cabinAngle -= 5;
         if (cabinNode) {
           cabinNode.rotation = [0, cabinAngle, 0];
@@ -399,54 +378,49 @@ function setup(shaders) {
         break;
 
 
-      //quando mudas as coordenadas da cabine ou do canhão, os tomatos deixam de sair de dentro do canhão
-      //do código que faz cenas aqui é procurar nas linhas: 533 a 542, 603 a 611 
       case 'z':
       case 'Z':
 
         let pos = [0, 0, 0];
-        const dirX = Math.sin(radians(-cabinAngle)) * Math.cos(radians(cannonAngle));
-        const dirY = -Math.sin(radians(cannonAngle));
-        const dirZ = Math.cos(radians(cabinAngle)) * Math.cos(radians(cannonAngle));
+        let dir = [0, -1, 0];
+        let m = mat4();
 
-        const cannonTipNode = nodeMap.get("cannonTip");
-        const tomatoContainer = nodeMap.get("tomatoes");
 
-        if (cannonTipNode && tomatoContainer) {
-          pos = getWorldPosition(cannonTipNode);
-          tomatoContainer.translation = [pos[0], pos[1], pos[2] + 0.4];
-          const newTomato = {
-            translation: [...pos],
-            vel: [0.2 * dirX, 0.2 * dirY, 0.2 * dirZ],
-            color: [1.0, 0.0, 0.0, 1.0],
-            time: 0,
-            primitive: SPHERE
-          };
+        if (cannonFireNode && tomatoContainerNode) {
 
-          // attach to scene graph
-          tomatoContainer.children.push(newTomato);
-          console.log("addded toamto")
-          buildNodeMap(newTomato, tomatoContainer);
+          m = getModel(cannonFireNode);
+
+          const posTmp = mult(m, vec4(pos, 1));
+          pos = [posTmp[0], posTmp[1], posTmp[2]];
+
+          dir = mult(m, vec4(dir, 0));
+          const len = Math.sqrt(dir[0] ** 2 + dir[1] ** 2 + dir[2] ** 2);
+          dir = [dir[0] / len, dir[1] / len, dir[2] / len];
+
+          tomatoContainerNode.translation = [pos[0], pos[1], pos[2]];
+          const t = genTomato(pos, dir);
+          tomatoContainerNode.children.push(t);
+          buildNodeMap(t, tomatoContainerNode);
         }
 
         break;
 
       case ' ':
       case 'Spacebar':
-        // changes between wireframe and solid
         mode = (mode === gl.TRIANGLES) ? gl.LINES : gl.TRIANGLES;
         break;
 
     }
-  });
+  }
 
   gl.clearColor(0.3, 0.3, 0.3, 1.0);
-  gl.enable(gl.DEPTH_TEST);   // Enables Z-buffer depth test
+  gl.enable(gl.DEPTH_TEST);
 
   CUBE.init(gl);
   CYLINDER.init(gl);
   SPHERE.init(gl);
   PYRAMID.init(gl);
+
 
   function buildNodeMap(node, parent = null) {
     node.parent = parent;
@@ -461,31 +435,28 @@ function setup(shaders) {
   function drawNode(gl, program, node, mode) {
     pushMatrix();
 
-    // apply transformations in fixed order
     if (node.translation) multTranslation(node.translation);
     if (node.rotation) {
-      multRotationZ(node.rotation[2]);  // Z first
-      multRotationY(node.rotation[1]);  // Y second  
+      multRotationZ(node.rotation[2]);
+      multRotationY(node.rotation[1]);
       multRotationX(node.rotation[0]);
-    }  // X l
+    }
     if (node.scale) multScale(node.scale);
 
-    // draw if leaf
     if (node.primitive) {
       const uColor = gl.getUniformLocation(program, "u_color");
       gl.uniform4fv(uColor, node.color);
       uploadModelView();
       node.primitive.draw(gl, program, mode);
       if (node.lines) {
-        gl.uniform4fv(uColor, [0, 0, 0, 1]); // Black lines
-        uploadModelView(); // Re-upload same matrix
+        gl.uniform4fv(uColor, [0, 0, 0, 1]);
+        uploadModelView();
         node.primitive.draw(gl, program, gl.LINES);
       }
 
     }
 
 
-    // recurse
     if (node.children) for (const child of node.children)
       drawNode(gl, program, child, mode);
 
@@ -509,7 +480,6 @@ function setup(shaders) {
     uploadMatrix("u_projection", mProjection);
   }
 
-  //matrix used for oblique view
   function obliqueMatrix(thetaDeg, gammaDeg) {
 
     const cotGamma = 1 / Math.tan(gammaDeg);
@@ -550,6 +520,9 @@ function setup(shaders) {
 
         uploadModelView();
         CUBE.draw(gl, program, mode);
+        gl.uniform4fv(uColor, [0, 0, 0, 1]);
+        uploadModelView();
+        CUBE.draw(gl, program, gl.LINES);
         popMatrix();
       }
     }
@@ -570,15 +543,16 @@ function setup(shaders) {
     if (tomatoContainer.children) {
 
       for (const t of tomatoContainer.children) {
-        t.translation[0] += projectile_power * t.vel[0];
-        t.translation[1] += projectile_power * t.vel[1];
-        t.translation[2] += projectile_power * t.vel[2];
-        // Add gravity
-        t.vel[1] -= 0.01; // g
+        t.translation[0] += tomatoSpeed * t.vel[0];
+        t.translation[1] += tomatoSpeed * t.vel[1];
+        t.translation[2] += tomatoSpeed * t.vel[2];
+
+        t.vel[1] -= 0.01; //GRAVITY
 
       }
     }
   }
+
   function updateView(baseOrtho) {
 
     switch (currentView) {
@@ -613,17 +587,16 @@ function setup(shaders) {
   }
 
   function render() {
-    //este animation é usado para a rotação do drone
     if (animation) time += speed;
     window.requestAnimationFrame(render);
-    toggleAxonometric(); // activates axonometric view setup(doesn't set mView to axonometric view)
+    toggleAxonometric();
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.useProgram(program);
 
-    // é preciso mudar um bocado o range para a proj. Oblíqua ver-se bem
     const range = isOblique ? 3.0 : 2.0;
     const baseOrtho = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
+
 
     if (!multiView) {
       updateView(baseOrtho);
