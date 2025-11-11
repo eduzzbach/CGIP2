@@ -246,11 +246,11 @@ function setup(shaders) {
         break;
 
       case '8':
-        if (currentView === axoV || currentView === obliqV) { // only toggle from axo/oblique
+        if (currentView === axoV || currentView === orthoV) { // only toggle from axo/oblique
           isOblique = !isOblique;
           if (isOblique) {
-            currentView = obliqV;
-            lastView = obliqV;
+            currentView = orthoV;
+            lastView = orth;
           } else {
             currentView = axoV;
             lastView = axoV;
