@@ -9,18 +9,18 @@ import * as PYRAMID from '../../libs/objects/pyramid.js';
 const numWheels = 6
 const wheelSpace = 1
  
- const rotorUPositions = [
-      [0.4, 0.3, 0.4],
-      [-0.4, 0.3, 0.4],
-      [0.4, 0.3, -0.4],
-      [-0.4, 0.3, -0.4]
-    ];
-    const rotorDPositions = [
-      [-0.4, -0.3, -0.4],
-      [0.4, -0.3, -0.4],
-      [-0.4, -0.3, 0.4],
-      [0.4, -0.3, 0.4]
-    ];
+const rotorUPositions = [
+    [0.4, 0.3, 0.4],
+    [-0.4, 0.3, 0.4],
+    [0.4, 0.3, -0.4],
+    [-0.4, 0.3, -0.4]
+  ];
+  const rotorDPositions = [
+    [-0.4, -0.3, -0.4],
+    [0.4, -0.3, -0.4],
+    [-0.4, -0.3, 0.4],
+    [0.4, -0.3, 0.4]
+  ];
 
 const colorDgreen = [0.2, 0.3, 0.1, 1.0];
 const colorLgreen = [0.3, 0.4, 0.1, 1.0];
@@ -32,7 +32,7 @@ const colorDGray = [0.1, 0.1, 0.1, 1];
 const colorRed = [1, 0, 0, 1];
 
 function genTomato(pos, dir){
-   return {
+  return {
             translation: [...pos],
             vel: [dir[0], dir[1], dir[2]],
             color: colorRed,
@@ -40,8 +40,6 @@ function genTomato(pos, dir){
             primitive: SPHERE
           };
 }
-
-
 
 var scene =
 [
