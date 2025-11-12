@@ -283,8 +283,19 @@ function setup(shaders) {
     }
   }
 
+  function resetView(){
+    const range = 2.0;
+        mProjection = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
+        mView = oView;
+        zoom = 1.0;
+        currentView = orthoV;
+        lastView = orthoV;
+        isPerspective = false;
+        isOblique = false;
+  }
+
   function drawView(projMatrix, viewMatrix, x, y, w, h) {
-        if(!isPerspective || !isOblique){
+        if(!isPerspective && !isOblique){
           projMatrix = baseOrtho;
         }
         uploadProjection(projMatrix);
@@ -392,6 +403,7 @@ function setup(shaders) {
       case '8':
           isOblique = !isOblique;
           if (isOblique) {
+            isPerspective = false;
             currentView = obliqV;
             lastView = obliqV;
           } else {
@@ -406,6 +418,7 @@ function setup(shaders) {
           lastView = currentView;
           isPerspective = true;
           currentView = persV;
+          isOblique = false;
         } else {
           isPerspective = false;
           currentView = lastView;
@@ -415,12 +428,7 @@ function setup(shaders) {
 
       case 'r':
       case 'R':
-        const range = 2.0;
-        mProjection = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
-        mView = oView;
-        zoom = 1.0;
-        currentView = orthoV;
-        lastView = orthoV;
+        resetView();
         break;
 
       case 'q':
@@ -564,8 +572,7 @@ function setup(shaders) {
 
     const range = isOblique ? 3.0 : 2.0;
     baseOrtho = ortho(-aspect * zoom * range, aspect * zoom * range, -zoom * range, zoom * range, 0.01, 10);
-
-
+    updateView();
     if (!multiView) {
       drawView(mProjection, mView, 0, 0, canvas.width, canvas.height);
     }
