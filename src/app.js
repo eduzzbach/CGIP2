@@ -25,7 +25,7 @@ const sView = lookAt([1, 0.6, 0.], [0, 0.6, 0], [0, 1, 0]);
 const tView = lookAt([0, 1.6, 0], [0, 0.6, 0], [0, 0, -1]);
 const oView = lookAt([2, 1.2, 1], [0, 0.6, 0], [0, 1, 0]);
 const pView = lookAt([3, 1.2, 2], [0, 0.6, 0], [0, 1, 0]);
-
+const obliqView = lookAt([0, 0.6, 1.5], [0, 0.6, 0], [0, 1, 0]);
 const floorSize = 20;
 const tileSize = 0.25;
 const tileHeight = 0.05;
@@ -92,9 +92,6 @@ function setup(shaders) {
   function toggleOblique() {
     const thetaDeg = theta;
     const l = 1;
-
-    mView = lookAt([2, 1.2, 1], [0, 0.6, 0], [0, 1, 0]);;
-
     mProjection = mult(baseOrtho, obliqueMatrix(thetaDeg, l));
 
   }
@@ -192,12 +189,10 @@ function setup(shaders) {
 
     const thetaRad = radians(thetaDeg);
 
-    return [
-      [1, 0, -l*Math.cos(thetaRad), 0],
-      [0, 1, -l*Math.sin(thetaRad), 0],
-      [0, 0, 0, 0],
-      [0, 0, 0, 1]
-    ];
+    const m = mat4(); 
+    m[0][2] = -l * Math.cos(thetaRad); 
+    m[1][2] = -l * Math.sin(thetaRad);
+    return m;
   }
 
   function uploadModelView() {
@@ -217,7 +212,7 @@ function setup(shaders) {
         multScale([tileSize, tileHeight, tileSize]);
 
         const isWhite = (i + j) % 2 === 0;
-        const color = isWhite ? [1.0, 1.0, 1.0, 1.0] : [0.5, 0.5, 0.5, 1.0];
+        const color = isWhite ? [1.0, 1.0, 1.0, 1.0] : [0.6, 0.6, 0.6, 1.00];
         const uColor = gl.getUniformLocation(program, "u_color");
 
         gl.uniform4fv(uColor, color);
@@ -268,6 +263,7 @@ function setup(shaders) {
         break;
 
       case obliqV:
+        mView = obliqView;
         toggleOblique();
         break;
 
@@ -410,7 +406,7 @@ function setup(shaders) {
             currentView = axoV;
             lastView = axoV;
           }
-          updateView(baseOrtho);
+          updateView();
         break;
 
       case '9':
@@ -423,7 +419,7 @@ function setup(shaders) {
           isPerspective = false;
           currentView = lastView;
         }
-        updateView(baseOrtho);
+        updateView();
         break;
 
       case 'r':
